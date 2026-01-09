@@ -5,22 +5,28 @@ import { getFileDates } from '../../lib/git-history';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('posts');
+	const backlinksMap = await import('../../lib/backlinks.ts').then(m => m.buildBacklinksMap());
+
 	return posts.map((entry: CollectionEntry<'posts'>) => ({
 		params: { slug: entry.slug },
-		props: { entry },
+		props: {
+			entry,
+			backlinkedPostSlugs: backlinksMap[entry.slug] || []
+		},
 	}));
 }
 
 interface Props {
 	entry: CollectionEntry<'posts'>;
+	backlinkedPostSlugs: string[];
 }
 
-const { entry } = Astro.props;
+const { entry, backlinkedPostSlugs } = Astro.props;
 const { Content } = await entry.render();
 const filePath = `src/content/posts/${entry.id}`;
 const { created, updated } = await getFileDates(filePath);
 ---
 
-<PostLayout frontmatter={entry.data} filePath={filePath} gitCreated={created} gitUpdated={updated}>
+<PostLayout frontmatter={entry.data} filePath={filePath} gitCreated={created} gitUpdated={updated} backlinkedPostSlugs={backlinkedPostSlugs}>
 	<Content />
 </PostLayout>

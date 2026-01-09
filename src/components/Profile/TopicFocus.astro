@@ -11,10 +11,9 @@ allPosts.forEach((post) => {
     });
 });
 
-// Get top 8 tags
+// Get all tags sorted alphabetically
 const topTags = Object.entries(tagCounts)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 8);
+    .sort(([a], [b]) => a.localeCompare(b));
 ---
 
 <div

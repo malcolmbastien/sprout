@@ -1,6 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
 import { theme } from "../../lib/theme";
+import { Picture } from "astro:assets";
 
 const posts = await getCollection("posts");
 const publishedPosts = posts.filter((post) => post.data);
@@ -24,9 +25,11 @@ const gravatarUrl =
 <div
     class="flex flex-col md:flex-row items-center justify-center gap-6 mb-12 pb-12 border-b border-slate-200 dark:border-slate-800"
 >
-    <img
+    <Picture
         src={gravatarUrl}
         alt="Avatar"
+        inferSize={true}
+        loading="eager"
         class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-900 shadow-sm transition-all duration-500"
     />
     <div class="flex-1 text-center md:text-left">
@@ -37,6 +40,14 @@ const gravatarUrl =
                 >Malcolm's Thoughts</a
             >
         </h1>
+        <div class="flex justify-center md:justify-start mb-4">
+            <a
+                href="/about"
+                class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium transition-colors"
+            >
+                About →
+            </a>
+        </div>
         <p class="text-slate-600 dark:text-slate-400 mb-4 max-w-xl">
             Exploring ideas, documenting learning, and growing knowledge one
             seed at a time. Treating every thought as a living document.

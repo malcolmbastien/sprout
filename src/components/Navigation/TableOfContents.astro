@@ -1,123 +1,148 @@
 ---
 // TableOfContents.astro - Automatically generates table of contents from headings
 interface Props {
-  content: string;
-  minHeadings?: number;
+    content: string;
+    title: string;
+    minHeadings?: number;
 }
 
-const { content, minHeadings = 3 } = Astro.props;
+const { content, title, minHeadings = 3 } = Astro.props;
 
 // Extract headings from Markdown content (skip frontmatter)
-const contentWithoutFrontmatter = content.replace(/^---[\s\S]*?---\n/, '');
-const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+const contentWithoutFrontmatter = content.replace(/^---[\s\S]*?---\n/, "");
+const headingRegex = /^(#{1,2})\s+(.+)$/gm; // Only H1, H2, H3
 const headings: Array<{ level: number; id: string; text: string }> = [];
 let match;
 
 while ((match = headingRegex.exec(contentWithoutFrontmatter)) !== null) {
-  const level = match[1].length; // Number of # symbols
-  const text = match[2].trim();
+    const level = match[1].length; // Number of # symbols
+    const text = match[2].trim();
 
-  // Generate ID from text (similar to how Astro generates heading IDs)
-  const id = text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single
-    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+    // Generate ID from text (similar to how Astro generates heading IDs)
+    const id = text
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "") // Remove special characters
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-") // Replace multiple hyphens with single
+        .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
 
-  // Skip the main title (usually level 1)
-  if (level > 1 || headings.length > 0) {
+    // Include all H1, H2, H3 headings
     headings.push({ level, id, text });
-  }
 }
 
 // Only show TOC if we have enough headings
 const showTOC = headings.length >= minHeadings;
 
 // Create nested structure for TOC
-const createTOCStructure = (headings: Array<{ level: number; id: string; text: string }>) => {
-  const toc: Array<{ id: string; text: string; children?: any[] }> = [];
-  const stack: Array<{ item: any; level: number }> = [];
+const createTOCStructure = (
+    title: string,
+    headings: Array<{ level: number; id: string; text: string }>,
+) => {
+    const toc: Array<{ id: string; text: string; children?: any[] }> = [];
+    const stack: Array<{ item: any; level: number }> = [];
 
-  headings.forEach(heading => {
-    const item = { id: heading.id, text: heading.text, children: [] };
+    // Add the post title as the first item
+    const titleItem = {
+        id: "",
+        text: title,
+        children: [],
+    };
+    toc.push(titleItem);
+    stack.push({ item: titleItem, level: 1 });
 
-    // Find the appropriate parent level
-    while (stack.length > 0 && stack[stack.length - 1].level >= heading.level) {
-      stack.pop();
-    }
+    headings.forEach((heading) => {
+        const item = { id: heading.id, text: heading.text, children: [] };
 
-    if (stack.length === 0) {
-      toc.push(item);
-    } else {
-      stack[stack.length - 1].item.children!.push(item);
-    }
+        // Find the appropriate parent level
+        while (
+            stack.length > 0 &&
+            stack[stack.length - 1].level >= heading.level
+        ) {
+            stack.pop();
+        }
 
-    stack.push({ item, level: heading.level });
-  });
+        if (stack.length === 0) {
+            toc.push(item);
+        } else {
+            stack[stack.length - 1].item.children!.push(item);
+        }
 
-  return toc;
+        stack.push({ item, level: heading.level });
+    });
+
+    return toc;
 };
 
-const tocStructure = createTOCStructure(headings);
+const tocStructure = createTOCStructure(title, headings);
 ---
 
-{showTOC && (
-  <aside class="hidden lg:block w-64 flex-shrink-0 ml-8">
-    <div class="sticky top-8">
-      <div class="bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-lg p-4 shadow-sm">
-        <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-widest">
-          Table of Contents
-        </h3>
-        <nav class="toc-nav">
-          {tocStructure.map((item) => (
-            <div class="toc-item">
-              <a
-                href={`#${item.id}`}
-                class="block text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-1 border-l-2 border-transparent hover:border-emerald-200 dark:hover:border-emerald-700 pl-3 -ml-3"
-              >
-                {item.text}
-              </a>
-              {item.children && item.children.length > 0 && (
-                <div class="ml-4 mt-1 space-y-1">
-                  {item.children.map((child) => (
-                    <a
-                      href={`#${child.id}`}
-                      class="block text-xs text-slate-500 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-0.5 border-l-2 border-transparent hover:border-emerald-200 dark:hover:border-emerald-700 pl-2 -ml-2"
-                    >
-                      {child.text}
-                    </a>
-                  ))}
+{
+    showTOC && (
+        <aside class="hidden lg:block w-64 shrink-0 ml-8">
+            <div class="sticky top-8">
+                <div class="bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-lg p-4 shadow-sm">
+                    <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4 uppercase tracking-widest">
+                        Table of Contents
+                    </h3>
+                    <nav class="toc-nav">
+                        {tocStructure.map((item, index) => {
+                            const isPostTitle = index === 0 && item.id === ""; // First item with empty ID is the post title
+
+                            return (
+                                <div class="toc-item">
+                                    <a
+                                        href={isPostTitle ? "#" : `#${item.id}`}
+                                        class={`block transition-colors py-1 border-l-2 border-transparent hover:border-emerald-200 dark:hover:border-emerald-700 pl-3 -ml-3 ${
+                                            isPostTitle
+                                                ? "text-base font-semibold text-slate-900 dark:text-slate-100 hover:text-emerald-700 dark:hover:text-emerald-300"
+                                                : "text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400"
+                                        }`}
+                                    >
+                                        {item.text}
+                                    </a>
+                                    {item.children &&
+                                        item.children.length > 0 && (
+                                            <div class="ml-4 mt-1 space-y-1">
+                                                {item.children.map((child) => (
+                                                    <a
+                                                        href={`#${child.id}`}
+                                                        class="block text-xs text-slate-500 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-0.5 border-l-2 border-transparent hover:border-emerald-200 dark:hover:border-emerald-700 pl-2 -ml-2"
+                                                    >
+                                                        {child.text}
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        )}
+                                </div>
+                            );
+                        })}
+                    </nav>
                 </div>
-              )}
             </div>
-          ))}
-        </nav>
-      </div>
-    </div>
-  </aside>
-)}
+        </aside>
+    )
+}
 
 <style>
-  .toc-nav {
-    max-height: calc(100vh - 200px);
-    overflow-y: auto;
-  }
+    .toc-nav {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
 
-  .toc-nav::-webkit-scrollbar {
-    width: 4px;
-  }
+    .toc-nav::-webkit-scrollbar {
+        width: 4px;
+    }
 
-  .toc-nav::-webkit-scrollbar-track {
-    background: transparent;
-  }
+    .toc-nav::-webkit-scrollbar-track {
+        background: transparent;
+    }
 
-  .toc-nav::-webkit-scrollbar-thumb {
-    background: rgb(203 213 225);
-    border-radius: 2px;
-  }
+    .toc-nav::-webkit-scrollbar-thumb {
+        background: rgb(203 213 225);
+        border-radius: 2px;
+    }
 
-  .dark .toc-nav::-webkit-scrollbar-thumb {
-    background: rgb(71 85 105);
-  }
+    .dark .toc-nav::-webkit-scrollbar-thumb {
+        background: rgb(71 85 105);
+    }
 </style>

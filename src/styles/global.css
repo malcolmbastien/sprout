@@ -335,7 +335,7 @@ html {
 
 /* Post-level Draft Styling */
 .post-is-draft {
-    @apply border-emerald-100 bg-emerald-50/10;
+    @apply border-emerald-200/30 dark:border-emerald-800/30 bg-emerald-50/5 dark:bg-emerald-950/5;
 }
 
 .post-draft-banner {
@@ -349,4 +349,13 @@ html {
 
 .filter-btn.active {
     @apply bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100 hover:bg-slate-800 dark:hover:bg-white shadow-sm;
+}
+
+/* --- Custom Link Styling for Blog Posts --- */
+.prose a {
+    @apply text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-200;
+}
+
+.prose a:hover {
+    @apply underline decoration-emerald-300 dark:decoration-emerald-600 underline-offset-2;
 }
