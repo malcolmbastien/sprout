@@ -1,0 +1,77 @@
+---
+interface Props {
+    counts: {
+        all: number;
+        seed: number;
+        sprout: number;
+        tree: number;
+    };
+    sortedPosts: any[];
+    allPosts: any[];
+    progressColors: {
+        seed: string;
+        sprout: string;
+        tree: string;
+    };
+}
+
+const { counts, sortedPosts, allPosts, progressColors } = Astro.props;
+---
+
+<div
+    class="bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-xl p-4"
+>
+    <h3
+        class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4"
+    >
+        Stats
+    </h3>
+    <div class="space-y-4">
+        <div class="flex justify-between items-end">
+            <span
+                class="text-sm text-slate-600 dark:text-slate-400"
+                >Total Thoughts</span
+            >
+            <span
+                class="text-2xl font-bold text-slate-900 dark:text-slate-100"
+                >{counts.all}</span
+            >
+        </div>
+        <div
+            class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden flex"
+        >
+            <div
+                class={`h-full ${progressColors.seed}`}
+                style={`width: ${(sortedPosts.filter((p) => p.data.status === "seed").length / (allPosts.length || 1)) * 100}%`}
+            >
+            </div>
+            <div
+                class={`h-full ${progressColors.sprout}`}
+                style={`width: ${(sortedPosts.filter((p) => p.data.status === "sprout").length / (allPosts.length || 1)) * 100}%`}
+            >
+            </div>
+            <div
+                class={`h-full ${progressColors.tree}`}
+                style={`width: ${(sortedPosts.filter((p) => p.data.status === "tree").length / (allPosts.length || 1)) * 100}%`}
+            >
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2" id="filter-buttons">
+            <button
+                class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium"
+                data-status="seed"
+                >🌱 Seeds ({counts.seed})</button
+            >
+            <button
+                class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium"
+                data-status="sprout"
+                >🌿 Sprouts ({counts.sprout})</button
+            >
+            <button
+                class="tag-btn px-3 py-1.5 rounded-full text-xs font-medium"
+                data-status="tree"
+                >🌳 Trees ({counts.tree})</button
+            >
+        </div>
+    </div>
+</div>

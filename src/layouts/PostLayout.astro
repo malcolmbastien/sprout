@@ -1,0 +1,292 @@
+---
+import Layout from "./Layout.astro";
+import PostHistory from "../components/History/PostHistory.astro";
+import ContentMap from "../components/Navigation/ContentMap.astro";
+import ProfileHeader from "../components/Profile/ProfileHeader.astro";
+import TableOfContents from "../components/Navigation/TableOfContents.astro";
+import { getCollection } from "astro:content";
+import { getStatusColors } from "../lib/theme";
+
+interface Props {
+    frontmatter: {
+        title: string;
+        publishedDate?: Date;
+        status: "seed" | "sprout" | "tree";
+        summary: string;
+        tags: string[];
+        draft?: boolean;
+    };
+    filePath: string;
+    gitCreated?: Date | null;
+    gitUpdated?: Date | null;
+}
+
+const { frontmatter, filePath, gitCreated, gitUpdated } = Astro.props;
+
+const createdDate = frontmatter.publishedDate || gitCreated || new Date();
+const hasBeenUpdated =
+    gitUpdated && gitUpdated.getTime() > createdDate.getTime() + 1000 * 60 * 60; // More than 1 hour difference
+
+// Get related posts based on shared tags
+const allPosts = await getCollection("posts");
+const currentSlug = filePath.split("/").pop()?.replace(".md", "") || "";
+
+// Get current post content for TOC
+const currentPost = allPosts.find((post) => post.slug === currentSlug);
+
+const relatedPosts = allPosts
+    .filter((post) => post.slug !== currentSlug && !post.data.draft) // Exclude current post and drafts
+    .map((post) => {
+        const sharedTags = post.data.tags.filter((tag) =>
+            frontmatter.tags.includes(tag),
+        ).length;
+        const displayDate = post.data.publishedDate || new Date();
+        return { ...post, sharedTags, displayDate };
+    })
+    .filter((post) => post.sharedTags > 0) // Only include posts with at least one shared tag
+    .sort((a, b) => {
+        // Sort by shared tags (descending), then by date (descending)
+        if (b.sharedTags !== a.sharedTags) return b.sharedTags - a.sharedTags;
+        return b.displayDate.getTime() - a.displayDate.getTime();
+    })
+    .slice(0, 3); // Limit to 3 related posts
+
+const statusColors = getStatusColors();
+
+const isPostDraft = frontmatter.draft === true;
+
+const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+};
+---
+
+<Layout
+    title={frontmatter.title}
+    description={frontmatter.summary}
+    type="article"
+    publishedTime={createdDate.toISOString()}
+    modifiedTime={hasBeenUpdated ? gitUpdated!.toISOString() : undefined}
+    tags={frontmatter.tags}
+>
+    <main class="max-w-6xl mx-auto p-4 md:p-8">
+        <ProfileHeader />
+        <div class="flex flex-col lg:flex-row gap-8">
+            <article
+                class={`flex-1 max-w-3xl ${isPostDraft ? "post-is-draft post-draft-indicator relative" : ""}`}
+            >
+                <ContentMap />
+                <div
+                    class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm"
+                >
+                    <nav class="mb-8">
+                        <a
+                            href="/"
+                            class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-4 w-4"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            Back to Garden
+                        </a>
+                    </nav>
+
+                    <header
+                        class="mb-8 border-b border-slate-200 dark:border-slate-600 pb-8"
+                    >
+                        <div class="flex flex-wrap items-center gap-4 mb-6">
+                            <span
+                                class={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${statusColors[frontmatter.status]}`}
+                            >
+                                {
+                                    frontmatter.status === "seed" && (
+                                        <span>🌱</span>
+                                    )
+                                }
+                                {
+                                    frontmatter.status === "sprout" && (
+                                        <span>🌿</span>
+                                    )
+                                }
+                                {
+                                    frontmatter.status === "tree" && (
+                                        <span>🌳</span>
+                                    )
+                                }
+                                {
+                                    frontmatter.status.charAt(0).toUpperCase() +
+                                        frontmatter.status.slice(1)
+                                }
+                            </span>
+
+                            <div
+                                class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 dark:text-slate-500"
+                            >
+                                <div class="flex items-center gap-1.5">
+                                    <span
+                                        class="font-semibold uppercase tracking-wider text-[10px] text-slate-300 dark:text-slate-600"
+                                        >Created</span
+                                    >
+                                    <time datetime={createdDate.toISOString()}
+                                        >{formatDate(createdDate)}</time
+                                    >
+                                </div>
+
+                                {
+                                    hasBeenUpdated && (
+                                        <div class="flex items-center gap-1.5 pl-4 border-l border-slate-200 dark:border-slate-600">
+                                            <span class="font-semibold uppercase tracking-wider text-[10px] text-slate-300 dark:text-slate-600">
+                                                Last Edited
+                                            </span>
+                                            <time
+                                                datetime={gitUpdated!.toISOString()}
+                                            >
+                                                {formatDate(gitUpdated!)}
+                                            </time>
+                                        </div>
+                                    )
+                                }
+                            </div>
+                        </div>
+
+                        <h1
+                            class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4"
+                        >
+                            {frontmatter.title}
+                        </h1>
+                        <p
+                            class="text-xl text-slate-600 dark:text-slate-300 italic mb-6"
+                        >
+                            {frontmatter.summary}
+                        </p>
+                        <div class="flex flex-wrap gap-2">
+                            {
+                                frontmatter.tags.map((tag: string) => (
+                                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-md text-sm border border-slate-100 dark:border-slate-700">
+                                        #{tag}
+                                    </span>
+                                ))
+                            }
+                        </div>
+                    </header>
+                    {
+                        isPostDraft && (
+                            <div class="post-draft-banner">
+                                <span class="text-xl">🏗️</span>
+                                <div>
+                                    <p class="font-bold uppercase tracking-wider text-[10px]">
+                                        Draft Content
+                                    </p>
+                                    <p>
+                                        This entire post is currently a work in
+                                        progress and may contain incomplete
+                                        thoughts.
+                                    </p>
+                                </div>
+                            </div>
+                        )
+                    }
+                    <div
+                        class="prose prose-slate dark:prose-invert prose-lg max-w-none"
+                    >
+                        <slot />
+                    </div>
+
+                    {
+                        relatedPosts.length > 0 && (
+                            <section class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-600">
+                                <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6">
+                                    Related Posts
+                                </h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {relatedPosts.map((post) => {
+                                        const postCreatedDate =
+                                            post.data.publishedDate ||
+                                            new Date();
+                                        return (
+                                            <a
+                                                href={`/posts/${post.slug}`}
+                                                class="group block p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                            >
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <span
+                                                        class={`px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                                                            post.data.status ===
+                                                            "seed"
+                                                                ? "bg-slate-100 text-slate-600 border-slate-200 dark:border-slate-600"
+                                                                : post.data
+                                                                        .status ===
+                                                                    "sprout"
+                                                                  ? "bg-green-100 text-green-700 border-green-200 dark:border-green-600"
+                                                                  : "bg-emerald-100 text-emerald-800 border-emerald-200 dark:border-emerald-600"
+                                                        }`}
+                                                    >
+                                                        {post.data.status ===
+                                                            "seed" && "🌱"}
+                                                        {post.data.status ===
+                                                            "sprout" && "🌿"}
+                                                        {post.data.status ===
+                                                            "tree" && "🌳"}
+                                                        {post.data.status}
+                                                    </span>
+                                                </div>
+                                                <h4 class="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-2 line-clamp-2">
+                                                    {post.data.title}
+                                                </h4>
+                                                <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
+                                                    {post.data.summary}
+                                                </p>
+                                                <div class="flex items-center justify-between text-[10px] text-slate-400">
+                                                    <time
+                                                        datetime={postCreatedDate.toISOString()}
+                                                    >
+                                                        {postCreatedDate.toLocaleDateString(
+                                                            "en-US",
+                                                            {
+                                                                month: "short",
+                                                                day: "numeric",
+                                                                year: "numeric",
+                                                            },
+                                                        )}
+                                                    </time>
+                                                    <div class="flex items-center gap-1">
+                                                        <span>
+                                                            {post.sharedTags}{" "}
+                                                            shared tag
+                                                            {post.sharedTags !==
+                                                            1
+                                                                ? "s"
+                                                                : ""}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        )
+                    }
+
+                    <footer
+                        class="mt-12 border-t border-slate-200 dark:border-slate-600"
+                    >
+                        <PostHistory filePath={filePath} />
+                    </footer>
+                </div>
+            </article>
+            <TableOfContents content={currentPost?.body || ""} />
+        </div>
+    </main>
+</Layout>

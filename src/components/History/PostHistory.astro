@@ -1,0 +1,112 @@
+---
+import { getFileHistory } from "../../lib/git-history";
+
+interface Props {
+    filePath: string;
+}
+
+const { filePath } = Astro.props;
+const history = await getFileHistory(filePath);
+
+function getEvolutionLabel(commit: any, index: number, total: number) {
+    const isFirst = index === total - 1;
+    if (isFirst) return "Seed Planted";
+
+    if (commit.insertions > 20) return "Significant Growth";
+    if (commit.insertions > 0) return "Thought Refined";
+    if (commit.deletions > 0) return "Pruned Content";
+    return "Garden Tended";
+}
+
+function getEvolutionIcon(commit: any, index: number, total: number) {
+    const isFirst = index === total - 1;
+    if (isFirst) return "🌱";
+    if (commit.insertions > 20) return "🌳";
+    if (commit.insertions > 0) return "✨";
+    if (commit.deletions > 0) return "✂️";
+    return "💧";
+}
+---
+
+<div class="mt-12">
+    <h3
+        class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2"
+    >
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 text-slate-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+        >
+            <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                clip-rule="evenodd"></path>
+        </svg>
+        History
+    </h3>
+
+    {
+        history.length > 0 ? (
+            <ul class="relative border-l border-slate-200 dark:border-slate-800 ml-3 space-y-8">
+                {history.map((commit: any, index: number) => (
+                    <li class="relative pl-8">
+                        <div class="absolute -left-[1.1rem] top-1 h-8 w-8 rounded-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center text-sm">
+                            {getEvolutionIcon(commit, index, history.length)}
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                    {getEvolutionLabel(
+                                        commit,
+                                        index,
+                                        history.length,
+                                    )}
+                                </span>
+                                <time class="text-xs text-slate-400 font-medium whitespace-nowrap">
+                                    {new Date(commit.date).toLocaleDateString(
+                                        "en-US",
+                                        {
+                                            year: "numeric",
+                                            month: "short",
+                                            day: "numeric",
+                                        },
+                                    )}
+                                </time>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider">
+                                    {commit.insertions > 0 && (
+                                        <span class="text-emerald-500">
+                                            +{commit.insertions}
+                                        </span>
+                                    )}
+                                    {commit.deletions > 0 && (
+                                        <span class="text-rose-400">
+                                            -{commit.deletions}
+                                        </span>
+                                    )}
+                                    {commit.insertions === 0 &&
+                                        commit.deletions === 0 &&
+                                        index !== history.length - 1 && (
+                                            <span class="text-slate-300 dark:text-slate-600">
+                                                Meta Change
+                                            </span>
+                                        )}
+                                </div>
+                                <code class="text-[9px] text-slate-300 dark:text-slate-700 uppercase tracking-widest">
+                                    {commit.hash.substring(0, 7)}
+                                </code>
+                            </div>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        ) : (
+            <p class="text-sm text-slate-500 italic">
+                No history available yet. This seed is fresh.
+            </p>
+        )
+    }
+</div>

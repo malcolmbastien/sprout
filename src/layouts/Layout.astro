@@ -1,0 +1,132 @@
+---
+import "../styles/global.css";
+import ThemeToggle from "../components/ThemeToggle.astro";
+
+interface Props {
+    title: string;
+    description?: string;
+    image?: string;
+    url?: string;
+    type?: 'website' | 'article';
+    publishedTime?: string;
+    modifiedTime?: string;
+    tags?: string[];
+    author?: string;
+}
+
+const {
+    title,
+    description = "A digital garden of thoughts and ideas",
+    image = "/og-default.png",
+    url = new URL(Astro.request.url).origin,
+    type = 'website',
+    publishedTime,
+    modifiedTime,
+    tags = [],
+    author = "Malcolm Bastien"
+} = Astro.props;
+
+// Generate canonical URL
+const canonicalUrl = url + new URL(Astro.request.url).pathname;
+
+// Generate Open Graph image URL
+const ogImage = image.startsWith('http') ? image : url + image;
+---
+
+<html lang="en" class="scroll-smooth">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+
+        <!-- Primary Meta Tags -->
+        <title>{title}</title>
+        <meta name="title" content={title} />
+        <meta name="description" content={description} />
+        <meta name="author" content={author} />
+        <link rel="canonical" href={canonicalUrl} />
+
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content={type} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content={description} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:site_name" content="Sprout" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content={canonicalUrl} />
+        <meta property="twitter:title" content={title} />
+        <meta property="twitter:description" content={description} />
+        <meta property="twitter:image" content={ogImage} />
+
+        <!-- Additional SEO -->
+        <meta name="robots" content="index, follow" />
+        <meta name="language" content="English" />
+        {tags.map(tag => <meta property="article:tag" content={tag} />)}
+
+        <!-- Article specific (only for article type) -->
+        {type === 'article' && publishedTime && (
+            <meta property="article:published_time" content={publishedTime} />
+        )}
+        {type === 'article' && modifiedTime && (
+            <meta property="article:modified_time" content={modifiedTime} />
+        )}
+        {type === 'article' && (
+            <meta property="article:author" content={author} />
+        )}
+
+        <!-- Structured Data -->
+        <script type="application/ld+json" set:html={JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": type === 'article' ? "BlogPosting" : "WebSite",
+            "name": title,
+            "description": description,
+            "url": canonicalUrl,
+            "image": ogImage,
+            "author": {
+                "@type": "Person",
+                "name": author
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Sprout",
+                "url": url
+            },
+            ...(type === 'article' && publishedTime && { "datePublished": publishedTime }),
+            ...(type === 'article' && modifiedTime && { "dateModified": modifiedTime }),
+            ...(type === 'article' && tags.length > 0 && { "keywords": tags.join(", ") })
+        })} />
+        <script is:inline>
+            const theme = (() => {
+                if (
+                    typeof localStorage !== "undefined" &&
+                    localStorage.getItem("theme")
+                ) {
+                    return localStorage.getItem("theme");
+                }
+                if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    return "dark";
+                }
+                return "light";
+            })();
+
+            if (theme === "light") {
+                document.documentElement.classList.remove("dark");
+            } else {
+                document.documentElement.classList.add("dark");
+            }
+            window.localStorage.setItem("theme", theme);
+        </script>
+    </head>
+    <body
+        class="bg-[#f0f5f3] dark:bg-[#0b0f0b] text-slate-900 dark:text-slate-100 transition-colors duration-500 antialiased min-h-screen"
+    >
+        <div class="fixed top-6 right-6 z-100 print:hidden">
+            <ThemeToggle />
+        </div>
+        <slot />
+    </body>
+</html>

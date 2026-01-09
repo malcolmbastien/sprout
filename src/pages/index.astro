@@ -1,0 +1,458 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import ActivityHeatmap from "../components/Profile/ActivityHeatmap.astro";
+import ProfileHeader from "../components/Profile/ProfileHeader.astro";
+import TopicFocus from "../components/Profile/TopicFocus.astro";
+import GardenStats from "../components/Profile/GardenStats.astro";
+import { getFileDates } from "../lib/git-history";
+import {
+    getStatusColors,
+    getStatusGlows,
+    getProgressColors,
+} from "../lib/theme";
+
+const allPosts = await getCollection("posts");
+
+// Fetch git dates for all posts to allow sorting by creation date
+const postsWithDates = await Promise.all(
+    allPosts.map(async (post) => {
+        const filePath = `src/content/posts/${post.id}`;
+        const { created, updated } = await getFileDates(filePath);
+        return {
+            ...post,
+            displayDate: post.data.publishedDate || created || new Date(),
+            updatedDate: updated || created || new Date(),
+        };
+    }),
+);
+
+const sortedPosts = postsWithDates.sort(
+    (a, b) => b.displayDate.valueOf() - a.displayDate.valueOf(),
+);
+
+// Compute post counts by status (excluding drafts for stats)
+const publishedPosts = allPosts.filter((post) => post.data);
+const counts = {
+    all: publishedPosts.length,
+    seed: publishedPosts.filter((p) => p.data.status === "seed").length,
+    sprout: publishedPosts.filter((p) => p.data.status === "sprout").length,
+    tree: publishedPosts.filter((p) => p.data.status === "tree").length,
+};
+
+const statusColors = getStatusColors();
+const progressColors = getProgressColors();
+---
+
+<Layout
+    title="Sprout - A Digital Garden"
+    description="A digital garden of thoughts and ideas. Explore seeds, sprouts, and trees of knowledge in this ever-growing collection of writings."
+    type="website"
+>
+    <main class="max-w-6xl mx-auto p-4 md:p-8">
+        <ProfileHeader />
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+            <div class="lg:col-span-3 space-y-6">
+                <ActivityHeatmap />
+                <TopicFocus />
+            </div>
+            <div class="lg:col-span-1 space-y-3">
+                <GardenStats
+                    counts={counts}
+                    sortedPosts={sortedPosts}
+                    allPosts={allPosts}
+                    progressColors={progressColors}
+                />
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <div class="relative group max-w-xs w-full">
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Search garden..."
+                    class="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all dark:text-slate-200"
+                />
+                <svg
+                    class="absolute left-3 top-2.5 h-4 w-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <div
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            id="posts-grid"
+        >
+            {
+                sortedPosts.map((post, index) => {
+                    const isLarge = post.data.status === "tree" && index < 3;
+                    const now = new Date();
+                    const sevenDaysAgo = new Date(
+                        now.getTime() - 7 * 24 * 60 * 60 * 1000,
+                    );
+
+                    // Check if recently created (within last 7 days)
+                    const isRecentlyCreated = post.displayDate >= sevenDaysAgo;
+
+                    // Check if recently updated (within last 7 days and different from creation)
+                    const isRecentlyUpdated =
+                        post.updatedDate >= sevenDaysAgo &&
+                        post.updatedDate.getTime() >
+                            post.displayDate.getTime() + 1000 * 60 * 60; // More than 1 hour difference
+
+                    // Apply separate limits for NEW (3) and UPDATED (3) posts
+                    // Only count published posts (not drafts) for badge limits
+                    const publishedPostsUpToHere = sortedPosts
+                        .slice(0, index + 1)
+                        .filter((p) => !p.data.draft);
+
+                    const newPostsCount = publishedPostsUpToHere.filter(
+                        (p) => p.displayDate >= sevenDaysAgo,
+                    ).length;
+
+                    // Count how many UPDATED badges would be shown up to and including this post
+                    const updatedBadgesUpToHere = publishedPostsUpToHere.filter(
+                        (p) => {
+                            const pRecentlyUpdated =
+                                p.updatedDate >= sevenDaysAgo &&
+                                p.updatedDate.getTime() >
+                                    p.displayDate.getTime() + 1000 * 60 * 60;
+                            return (
+                                pRecentlyUpdated &&
+                                !(p.displayDate >= sevenDaysAgo)
+                            );
+                        },
+                    ).length;
+
+                    // Priority: assign up to 3 NEW, then up to 3 UPDATED
+                    let assignedBadge: "new" | "updated" | null = null;
+
+                    if (!post.data.draft) {
+                        if (isRecentlyCreated && newPostsCount < 3) {
+                            assignedBadge = "new";
+                        } else if (
+                            isRecentlyUpdated &&
+                            updatedBadgesUpToHere < 3
+                        ) {
+                            assignedBadge = "updated";
+                        }
+                    }
+
+                    const showAsRecent = assignedBadge !== null;
+
+                    return (
+                        <a
+                            href={`/posts/${post.slug}`}
+                            class={`group flex flex-col p-6 rounded-2xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl post-card ${
+                                showAsRecent
+                                    ? assignedBadge === "new"
+                                        ? "hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/50 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20"
+                                        : "hover:shadow-amber-200/50 dark:hover:shadow-amber-900/50 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20"
+                                    : "hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50 border-slate-200 dark:border-slate-800 bg-white dark:bg-[#121812]"
+                            } ${isLarge ? "md:col-span-2 lg:col-span-2" : ""}`}
+                            data-status={post.data.status}
+                            data-title={post.data.title.toLowerCase()}
+                            data-summary={post.data.summary.toLowerCase()}
+                            data-tags={post.data.tags.join(" ").toLowerCase()}
+                            data-created={
+                                post.displayDate.toISOString().split("T")[0]
+                            }
+                            data-updated={
+                                post.updatedDate.toISOString().split("T")[0]
+                            }
+                        >
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider flex items-center gap-1.5 ${statusColors[post.data.status as keyof typeof statusColors]}`}
+                                    >
+                                        {post.data.status === "seed" && (
+                                            <span>🌱</span>
+                                        )}
+                                        {post.data.status === "sprout" && (
+                                            <span>🌿</span>
+                                        )}
+                                        {post.data.status === "tree" && (
+                                            <span>🌳</span>
+                                        )}
+                                        {post.data.status}
+                                    </span>
+                                    {showAsRecent && (
+                                        <span
+                                            class={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${
+                                                assignedBadge === "new"
+                                                    ? "bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800"
+                                                    : "bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
+                                            }`}
+                                            title={
+                                                assignedBadge === "new"
+                                                    ? "Created within the last 7 days"
+                                                    : "Updated within the last 7 days"
+                                            }
+                                        >
+                                            {assignedBadge === "new"
+                                                ? "NEW"
+                                                : "UPDATED"}
+                                        </span>
+                                    )}
+                                </div>
+                                <div class="flex flex-col items-end">
+                                    <time class="text-[10px] text-slate-400 font-medium">
+                                        {post.displayDate.toLocaleDateString(
+                                            "en-US",
+                                            {
+                                                year: "numeric",
+                                                month: "short",
+                                                day: "numeric",
+                                            },
+                                        )}
+                                    </time>
+                                </div>
+                            </div>
+
+                            <h2
+                                class={`font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors ${isLarge ? "text-2xl mb-3" : "text-xl mb-2"}`}
+                            >
+                                {post.data.title}
+                            </h2>
+
+                            <p
+                                class={`text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 ${isLarge ? "text-base mb-6" : "text-sm mb-4"}`}
+                            >
+                                {post.data.summary}
+                            </p>
+
+                            <div class="flex flex-wrap items-center justify-between mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 gap-4">
+                                <div class="flex flex-wrap gap-1.5">
+                                    {post.data.tags
+                                        .slice(0, 3)
+                                        .map((tag: string) => (
+                                            <span class="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded text-[10px] border border-slate-100 dark:border-slate-700">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    {post.data.tags.length > 3 && (
+                                        <span class="text-[10px] text-slate-300 dark:text-slate-600">
+                                            +{post.data.tags.length - 3}
+                                        </span>
+                                    )}
+                                </div>
+                                <div class="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Read
+                                    <svg
+                                        class="w-3 h-3"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            d="M9 5l7 7-7 7"
+                                            stroke-width="3"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                        </a>
+                    );
+                })
+            }
+        </div>
+
+        <div id="no-results" class="hidden text-center py-20">
+            <div class="text-4xl mb-4 text-slate-300">🍂</div>
+            <h3
+                class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2"
+            >
+                No thoughts found
+            </h3>
+            <p class="text-slate-500">
+                Try searching for something else or changing the filter.
+            </p>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    /* Custom animations for filtered items */
+    .post-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .post-card.hidden-filter {
+        display: none !important;
+    }
+</style>
+
+<script>
+    const buttons = document.querySelectorAll("[data-status]");
+    const tagButtons = document.querySelectorAll("[data-tag]");
+    const searchInput = document.getElementById(
+        "search-input",
+    ) as HTMLInputElement;
+    const cards = document.querySelectorAll(".post-card");
+    const noResults = document.getElementById("no-results");
+
+    let currentFilter = "all";
+    let currentTag = "";
+    let searchQuery = "";
+    let currentDateFilter: string | null = null;
+
+    function updateDisplay() {
+        let visibleCount = 0;
+
+        cards.forEach((card) => {
+            const htmlCard = card as HTMLElement;
+            const status = htmlCard.dataset.status;
+            const title = htmlCard.dataset.title || "";
+            const summary = htmlCard.dataset.summary || "";
+            const tags = htmlCard.dataset.tags || "";
+            const createdDate = htmlCard.dataset.created || "";
+            const updatedDate = htmlCard.dataset.updated || "";
+
+            const matchesFilter =
+                currentFilter === "all" || status === currentFilter;
+            const matchesTag = currentTag === "" || tags.includes(currentTag);
+            const matchesSearch =
+                title.includes(searchQuery) ||
+                summary.includes(searchQuery) ||
+                tags.includes(searchQuery);
+            const matchesDate =
+                currentDateFilter === null ||
+                createdDate.startsWith(currentDateFilter) ||
+                updatedDate.startsWith(currentDateFilter);
+
+            if (matchesFilter && matchesTag && matchesSearch && matchesDate) {
+                htmlCard.classList.remove("hidden-filter");
+                visibleCount++;
+            } else {
+                htmlCard.classList.add("hidden-filter");
+            }
+        });
+
+        if (noResults) {
+            if (visibleCount === 0) noResults.classList.remove("hidden");
+            else noResults.classList.add("hidden");
+        }
+    }
+
+    buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const status = (button as HTMLElement).dataset.status || "all";
+            if (currentFilter === status) {
+                // Clicking active button deactivates it
+                button.classList.remove("active");
+                currentFilter = "all";
+            } else {
+                buttons.forEach((btn) => btn.classList.remove("active"));
+                button.classList.add("active");
+                currentFilter = status;
+            }
+            updateDisplay();
+        });
+    });
+
+    tagButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const tag = (button as HTMLElement).dataset.tag || "";
+            if (currentTag === tag) {
+                // Clicking active tag deactivates it
+                button.classList.remove("active");
+                currentTag = "";
+            } else {
+                tagButtons.forEach((btn) => btn.classList.remove("active"));
+                button.classList.add("active");
+                currentTag = tag;
+            }
+            updateDisplay();
+        });
+    });
+
+    searchInput?.addEventListener("input", (e) => {
+        searchQuery = (e.target as HTMLInputElement).value.toLowerCase();
+        updateDisplay();
+    });
+
+    // Listen for date filter changes from activity heatmap
+    window.addEventListener("dateFilterChange", (e: any) => {
+        currentDateFilter = e.detail.date;
+        updateDisplay();
+    });
+
+    // Prevent any interference with blog card clicks
+    document.querySelectorAll(".post-card").forEach((card) => {
+        card.addEventListener(
+            "click",
+            (e) => {
+                // Ensure no event bubbling that could trigger filtering
+                e.stopPropagation();
+            },
+            true,
+        ); // Capture phase
+
+        // Prevent focus/blur events that might trigger updates
+        card.addEventListener("focus", (e) => e.stopPropagation(), true);
+        card.addEventListener("blur", (e) => e.stopPropagation(), true);
+    });
+</script>
+
+<style>
+    .tag-btn {
+        background-color: rgb(241 245 249);
+        border: 1px solid rgb(226 232 240);
+        color: rgb(15 23 42);
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .tag-btn:hover {
+        background-color: rgb(248 250 252);
+    }
+    .tag-btn.active {
+        background-color: oklch(40.5% 0.101 131.063);
+        color: white;
+        border-color: rgb(15 23 42) !important;
+    }
+    .dark .tag-btn {
+        background-color: transparent !important;
+        border-color: rgb(71 85 105) !important;
+        color: rgb(203 213 225) !important;
+    }
+    .dark .tag-btn:hover {
+        background-color: rgb(51 65 85) !important;
+    }
+    .dark .tag-btn.active {
+        background-color: rgb(241 245 249) !important;
+        color: rgb(15 23 42) !important;
+        border-color: rgb(241 245 249) !important;
+    }
+
+    /* Completely disable all visual effects on blog cards */
+    .post-card {
+        -webkit-tap-highlight-color: transparent;
+        transition: none !important;
+        transform: none !important;
+    }
+
+    .post-card:hover {
+        transform: none !important;
+    }
+
+    .post-card:active,
+    .post-card:focus {
+        transform: none !important;
+        transition: none !important;
+    }
+</style>

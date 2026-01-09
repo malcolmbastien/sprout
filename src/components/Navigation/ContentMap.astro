@@ -1,0 +1,152 @@
+---
+---
+<div id="content-map-container" class="fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col gap-2 transition-opacity duration-300 opacity-0 group">
+  <div id="content-map" class="flex flex-col gap-1.5 items-center p-2 rounded-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md group-hover:scale-105">
+    <!-- Dots will be injected here -->
+  </div>
+  
+  <div id="map-label" class="absolute right-full mr-4 top-0 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest whitespace-nowrap opacity-0 transition-opacity pointer-events-none">
+    Content Map
+  </div>
+</div>
+
+<style is:global>
+  @reference "../../styles/global.css";
+
+  .map-dot {
+    @apply w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 transition-all duration-200 cursor-pointer hover:scale-150;
+  }
+
+  .map-dot.active {
+    @apply bg-emerald-500 ring-4 ring-emerald-500/20 scale-125;
+  }
+
+  /* Headers */
+  .map-dot-h1, .map-dot-h2 {
+    @apply w-2.5 h-2.5 bg-slate-400 dark:bg-slate-500;
+  }
+  .map-dot-h3, .map-dot-h4 {
+    @apply w-2 h-2 bg-slate-400 dark:bg-slate-600;
+  }
+
+  /* Callouts */
+  .map-dot-callout {
+    @apply w-2.5 h-2.5;
+  }
+  .map-dot-note, .map-dot-info, .map-dot-todo { @apply bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]; }
+  .map-dot-tip, .map-dot-success, .map-dot-done, .map-dot-check { @apply bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]; }
+  .map-dot-important, .map-dot-abstract, .map-dot-summary, .map-dot-tldr { @apply bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]; }
+  .map-dot-warning, .map-dot-caution, .map-dot-attention { @apply bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]; }
+  .map-dot-question, .map-dot-help, .map-dot-faq { @apply bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.5)]; }
+  .map-dot-failure, .map-dot-fail, .map-dot-missing, .map-dot-danger, .map-dot-error { @apply bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]; }
+  .map-dot-bug { @apply bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.5)]; }
+  .map-dot-idea { @apply bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]; }
+  .map-dot-example { @apply bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]; }
+  .map-dot-quote, .map-dot-cite { @apply bg-slate-400 dark:bg-slate-500; }
+
+  /* Draft */
+  .map-dot-draft, .map-dot-wip {
+    @apply bg-transparent border border-slate-400 dark:border-slate-500 border-dashed scale-110;
+  }
+</style>
+
+<script>
+  function initContentMap() {
+    const content = document.querySelector('.prose');
+    const map = document.getElementById('content-map');
+    const container = document.getElementById('content-map-container');
+    const label = document.getElementById('map-label');
+
+    if (!content || !map || !container) return;
+
+    // Clear existing
+    map.innerHTML = '';
+
+    const elements = Array.from(content.children);
+    const indicators: HTMLElement[] = [];
+
+    elements.forEach((el, index) => {
+      const tag = el.tagName.toLowerCase();
+      
+      // Filter out elements that are too small or likely metadata (like scripts/styles)
+      if (el instanceof HTMLElement && el.offsetHeight < 5 && !tag.startsWith('h')) return;
+      
+      const dot = document.createElement('div');
+      dot.className = 'map-dot';
+      
+      // Assign ID to element for scrolling if it doesn't have one
+      if (!el.id) el.id = `content-node-${index}`;
+
+      // Determine type
+      if (tag.startsWith('h')) {
+        dot.classList.add(`map-dot-${tag}`);
+      } else if (el.classList.contains('markdown-alert')) {
+        dot.classList.add('map-dot-callout');
+        const alertType = Array.from(el.classList)
+          .find(c => c.startsWith('markdown-alert-'))
+          ?.replace('markdown-alert-', '');
+        if (alertType) dot.classList.add(`map-dot-${alertType}`);
+      } else if (el.classList.contains('draft-container')) {
+        dot.classList.add('map-dot-draft');
+      } else if (tag === 'p' || tag === 'ul' || tag === 'ol' || tag === 'blockquote') {
+        dot.classList.add('map-dot-p');
+      } else {
+        // Skip hidden or metadata elements
+        if (el.getBoundingClientRect().height === 0) return;
+        dot.classList.add('map-dot-other');
+      }
+
+      dot.addEventListener('click', () => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+
+      // Tooltip/Label on hover
+      dot.addEventListener('mouseenter', () => {
+        if (label) {
+          label.style.opacity = '1';
+          label.style.top = `${dot.offsetTop}px`;
+          label.textContent = el.textContent?.substring(0, 30).trim() + '...' || 'Section';
+        }
+      });
+      dot.addEventListener('mouseleave', () => {
+        if (label) label.style.opacity = '0';
+      });
+
+      map.appendChild(dot);
+      indicators.push(dot);
+      (dot as any).targetElement = el;
+    });
+
+    if (indicators.length > 0) {
+      container.classList.remove('hidden');
+      setTimeout(() => container.style.opacity = '1', 100);
+    }
+
+    // Scroll spy
+    const observerOptions = {
+      root: null,
+      rootMargin: '-10% 0px -80% 0px',
+      threshold: 0
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = elements.indexOf(entry.target as HTMLElement);
+          if (index !== -1 && indicators[index]) {
+            indicators.forEach(d => d.classList.remove('active'));
+            indicators[index].classList.add('active');
+          }
+        }
+      });
+    }, observerOptions);
+
+    elements.forEach(el => observer.observe(el));
+  }
+
+  // Run on load
+  initContentMap();
+
+  // Re-run on Astro navigation
+  document.addEventListener('astro:after-swap', initContentMap);
+</script>
