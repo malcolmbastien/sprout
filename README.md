@@ -4,7 +4,16 @@ Sprout is a modern, feature-rich digital garden built with **Astro** and **Tailw
 It treats thoughts as living documents, tracking their evolution through Git history while providing
 a delightful reading and discovery experience with advanced filtering, SEO optimization, and interactive features.
 
-<!-- Live demo: [View Example Garden](https://your-demo-site.com/) -->
+## Screenshots
+
+### Homepage - Bento Grid Layout
+![Homepage - Bento Grid](public/screenshots/homepage-bento.png)
+
+### Post Page - Reading Experience
+![Post Page](public/screenshots/post-page.png)
+
+### Dark Mode
+![Dark Mode](public/screenshots/dark-mode.png)
 
 ## ✨ Key Features
 
