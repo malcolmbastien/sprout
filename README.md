@@ -6,14 +6,23 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 
 ## Screenshots
 
-### Homepage - Bento Grid Layout
-![Homepage - Bento Grid](public/screenshots/homepage-bento.png)
+### Homepage (Light Mode)
+![Homepage](public/screenshots/homepage.png)
 
-### Post Page - Reading Experience
+### Homepage (Dark Mode)
+![Dark Mode](public/screenshots/dark-mode.png)
+
+### Post Page
 ![Post Page](public/screenshots/post-page.png)
 
-### Dark Mode
-![Dark Mode](public/screenshots/dark-mode.png)
+### About Page
+![About Page](public/screenshots/about-page.png)
+
+### Topic Index
+![Topic Page](public/screenshots/topic-page.png)
+
+### Site Footer & Stats
+![Footer](public/screenshots/footer.png)
 
 ## ✨ Key Features
 
