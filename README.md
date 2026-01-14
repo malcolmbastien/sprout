@@ -27,30 +27,37 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 ## ✨ Key Features
 
 ### **📚 Content Management**
-- **🌱 Growth States:** Categorize your thoughts as **Seed**, **Sprout**, or **Tree** to reflect their maturity.
+- **🌱 Growth States:** Categorize your thoughts as **Seed**, **Sprout**, or **Evergreen** to reflect their maturity.
+- **📌 Pinned Posts:** Highlight foundational thoughts at the top of your homepage for easy access.
+- **🌟 Featured Posts:** Make significant posts stand out in the timeline with larger cards and cover images.
+- **🏷️ Flexible Tagging:** Support for both frontmatter tags and inline `#hashtag` style tagging within your content.
 - **📖 Reading Time Estimates:** Automatic calculation of estimated reading time for each post.
-- **🔗 Related Posts:** Smart recommendations showing 2-3 related posts based on shared tags.
+- **🔗 Backlinks:** Automatic tracking of connections between your thoughts, showing every other post that links to the current one.
 - **📋 Table of Contents:** Auto-generated navigation for posts with multiple headings (desktop only).
 - **🏗️ Drafting System:** Support for marking entire posts or specific blocks as in-progress with unique "under construction" styling.
 
 ### **🔍 Discovery & Navigation**
-- **🗺️ Content Map:** A virtual scrollbar on every post page that visualizes the structure (headers, callouts, paragraphs) and allows for quick navigation.
-- **🍱 Bento Grid Homepage:** A dynamic, responsive layout that highlights more mature "Tree" posts.
-- **🔍 Live Search & Filtering:** Instant client-side search and maturity-based filtering (Seeds/Sprouts/Trees).
+- **🗺️ Content Map:** A unique visual header on every post page that visualizes the structure (headers, callouts, paragraphs) and provides a sense of length and landmarks.
+- **☀️ Freshly Planted:** A dedicated homepage section to quickly surface your most recent updates and new seeds.
+- **🔍 Post Search:** Instant, full-text client-side search to help visitors find specific thoughts.
+- **📂 Topic Index:** A comprehensive page listing all garden topics with post counts for easy exploration.
+- **🔗 Smart Link Detection:** Visual distinction between internal wiki-links and external references, including "link distinction" styling.
+- **📅 Post Timeline:** A chronological overview of your garden's activity, showing when posts were created or updated.
 - **📅 Date Filtering:** Click any active day in the activity heatmap to filter posts by creation/update date.
-- **⭐ Recent Indicators:** Visual badges highlighting posts created/updated within the last 7 days (limited to top 3 for clean UI).
 
 ### **🎨 Design & UX**
+- **📖 Enhanced Core Pages:** Polished **About** and **Colophon** pages to share your personal story and the technical stack behind your garden.
 - **📝 Semantic Callouts:** Rich support for GitHub-style alerts and custom garden callouts like `[!IDEA]`, `[!QUESTION]`, and `[!DRAFT]`.
 - **🌓 Adaptive Themes:** Green-tinted light and dark modes with a persistent toggle.
 - **🎨 Centralized Theme System:** All colors managed in a single configuration file for easy customization.
 - **📱 Responsive Design:** Optimized layouts for all device sizes with mobile-first approach.
 
 ### **🔧 Technical Features**
-- **📜 Git Evolution Tracking:** Automatically extracts file history from Git to show a poetic timeline of how each post has grown.
+- **📜 Git Evolution Tracking:** Automatically extracts file history from Git to show a timeline of how each post has grown.
 - **📊 Activity Heatmap:** A GitHub-style contributions grid showing when you've been tending to your garden.
 - **🔍 SEO Optimized:** Structured data (JSON-LD), meta tags, Open Graph, Twitter Cards, sitemap, and robots.txt.
 - **⚡ Performance:** Fast builds, optimized images, and efficient client-side filtering.
+- **✨ Local Support & Sharp Optimization:** Optimized local development experience with image processing powered by Sharp.
 
 ## 🚀 Getting Started
 

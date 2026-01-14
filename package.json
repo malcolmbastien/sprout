@@ -7,17 +7,25 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "postbuild": "pagefind --site dist",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.6.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "astro": "^5.16.7",
     "remark-directive": "^4.0.0",
     "remark-github-alerts": "^0.1.1",
     "remark-parse": "^11.0.0",
+    "sharp": "^0.34.5",
     "simple-git": "^3.30.0",
     "tailwindcss": "^4.1.18",
     "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "pagefind": "^1.4.0",
+    "typescript": "^5.9.3"
   }
 }

@@ -1,17 +1,8 @@
-# Deploy to GitHub Pages
-# This workflow builds and deploys your Sprout digital garden to GitHub Pages
-#
-# To use this workflow:
-# 1. Enable GitHub Pages in your repository settings
-# 2. Set the source to "GitHub Actions"
-# 3. Update the branch name below if you use a different default branch
-# 4. Uncomment and configure the site URL in astro.config.mjs
-
 name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]  # Change this to your default branch (e.g., 'master')
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -32,7 +23,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: "npm"
+
+      - name: Cache Astro
+        uses: actions/cache@v4
+        with:
+          path: .astro
+          key: ${{ runner.os }}-astro-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('src/assets/**') }}
+          restore-keys: |
+            ${{ runner.os }}-astro-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-astro-
 
       - name: Install dependencies
         run: npm install
