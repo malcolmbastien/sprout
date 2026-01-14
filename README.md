@@ -95,10 +95,12 @@ Posts are located in `src/content/posts/`. To create a new one, add a `.md` file
 
 ```markdown
 ---
-title: "My New Discovery"
-status: "seed" # seed | sprout | tree
-tags: ["learning", "webdev"]
-summary: "A brief sentence describing this thought."
+title: My New Discovery
+status: seed # seed | sprout | evergreen
+tags:
+  - learning
+  - webdev
+summary: A brief sentence describing this thought.
 # publishedDate: 2026-01-08 (Optional - will fallback to Git creation date)
 # draft: true (Optional - adds a WIP banner)
 ---
@@ -114,6 +116,7 @@ Your content here...
 ## 🛠️ Project Structure
 
 - `src/content/`: Your blog posts and collection configuration.
+- `src/assets/` : Your images to serve in blog posts
 - `src/components/`: Reusable UI elements (Heatmap, Content Map, Table of Contents, Toggle, etc.).
 - `src/layouts/`: Page wrappers (Main Layout and Post Layout).
 - `src/lib/`: Backend utilities (Git history extraction, theme configuration, and Remark plugins).
@@ -142,12 +145,17 @@ export const theme = {
 ### **Post Frontmatter Options**
 ```markdown
 ---
-title: "My Post Title"
-status: "seed"        # seed | sprout | tree
-tags: ["tag1", "tag2"]
-summary: "Brief description"
+title: My Post Title
+status: seed        # seed | sprout | evergreen
+tags:
+  - tag1
+  - tag2
+summary: Brief description
 publishedDate: 2026-01-08  # Optional, defaults to Git creation date
 draft: true              # Optional, adds WIP banner
+pinned: true            # Optional, adds to Pinned section on homepage
+featured: true            # Optional, creates larger entry in post timeline if cover image is set
+cover: "../../assets/cover-image.jpg"  # Optional, required to create featured post.
 ---
 ```
 
@@ -161,26 +169,6 @@ This project is configured for **GitHub Pages** via GitHub Actions. Any push to 
 - **Structured Data:** JSON-LD schema markup for blog posts
 - **Meta Tags:** Complete Open Graph and Twitter Card support
 - **Performance:** Optimized builds with efficient client-side filtering
-
-### **Analytics & Monitoring**
-The site is ready for analytics integration (Google Analytics, Plausible, etc.) and includes proper meta tags for social media sharing.
-
-## 🤝 Contributing
-
-This digital garden is designed to grow organically. Feel free to:
-- Create new posts in `src/content/posts/`
-- Customize colors in `src/lib/theme.ts`
-- Add new features or improve existing ones
-- Share your gardening techniques!
-
-## 📈 Future Plans
-
-- RSS feed generation
-- Comment system integration
-- Advanced search with fuzzy matching
-- Post series/collections support
-- Export functionality (PDF, EPUB)
-- Multi-author support
 
 ---
 *Happy gardening!* 🌿
