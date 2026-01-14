@@ -1,0 +1,92 @@
+---
+---
+
+<div
+    id="lightbox"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 opacity-0 pointer-events-none transition-opacity duration-300 cursor-zoom-out"
+    aria-hidden="true"
+>
+    <div class="relative w-full h-full flex items-center justify-center p-4 md:p-8">
+        <img
+            id="lightbox-img"
+            src=""
+            alt=""
+            class="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-300 scale-95 cursor-zoom-out"
+        />
+        
+        <button
+            id="lightbox-close"
+            class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"
+            aria-label="Close lightbox"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    function initLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+        const closeBtn = document.getElementById('lightbox-close');
+        
+        if (!lightbox || !lightboxImg || !closeBtn) return;
+
+        function openLightbox(src: string, alt: string) {
+            lightboxImg.src = src;
+            lightboxImg.alt = alt;
+            lightbox?.classList.remove('opacity-0', 'pointer-events-none');
+            lightbox?.classList.add('opacity-100');
+            lightboxImg?.classList.remove('scale-95');
+            lightboxImg?.classList.add('scale-100');
+            document.body.style.overflow = 'hidden';
+            lightbox?.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeLightbox() {
+            lightbox?.classList.add('opacity-0', 'pointer-events-none');
+            lightbox?.classList.remove('opacity-100');
+            lightboxImg?.classList.remove('scale-100');
+            lightboxImg?.classList.add('scale-95');
+            document.body.style.overflow = '';
+            lightbox?.setAttribute('aria-hidden', 'true');
+            // Clear src after transition to avoid flicker next time
+            setTimeout(() => {
+                if (lightbox?.classList.contains('opacity-0')) {
+                    lightboxImg.src = '';
+                }
+            }, 300);
+        }
+
+        // Add click listeners to all images in the article content
+        const article = document.querySelector('article');
+        if (article) {
+            const images = article.querySelectorAll('img');
+            images.forEach(img => {
+                const imageEl = img as HTMLImageElement;
+                imageEl.classList.add('cursor-zoom-in');
+                imageEl.addEventListener('click', () => {
+                    openLightbox(imageEl.src, imageEl.alt);
+                });
+            });
+        }
+
+        // Close on click
+        lightbox.addEventListener('click', () => {
+            closeLightbox();
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    }
+
+    // Initialize on load
+    initLightbox();
+
+    // Re-initialize on Astro navigation
+    document.addEventListener('astro:after-swap', initLightbox);
+</script>

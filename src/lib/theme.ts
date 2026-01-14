@@ -18,7 +18,7 @@ export const theme = {
     seed: "bg-emerald-100/40 dark:bg-emerald-800/40 border border-emerald-300 dark:border-emerald-900",
     sprout:
       "bg-emerald-200/40 dark:bg-emerald-700/40 border border-emerald-400 dark:border-emerald-700",
-    tree: "bg-emerald-300/40 dark:bg-emerald-600/40 border border-emerald-500 dark:border-emerald-800",
+    evergreen: "bg-emerald-300/40 dark:bg-emerald-600/40 border border-emerald-500 dark:border-emerald-800",
   },
 
   status: {
@@ -37,7 +37,7 @@ export const theme = {
       glow: "hover:shadow-emerald-200/50 dark:hover:shadow-emerald-800/50", // deprecated
       progress: "bg-emerald-200 dark:bg-emerald-700",
     },
-    tree: {
+    evergreen: {
       badge:
         "bg-emerald-300/40 dark:bg-emerald-600/40 text-emerald-800 dark:text-emerald-400 border-emerald-500 dark:border-emerald-800",
       glow: "hover:shadow-emerald-200/75 dark:hover:shadow-emerald-700/50", // deprecated
@@ -50,17 +50,17 @@ export const theme = {
 export const getStatusColors = () => ({
   seed: theme.status.seed.badge,
   sprout: theme.status.sprout.badge,
-  tree: theme.status.tree.badge,
+  evergreen: theme.status.evergreen.badge,
 });
 
 export const getStatusGlows = () => ({
   seed: theme.status.seed.glow,
   sprout: theme.status.sprout.glow,
-  tree: theme.status.tree.glow,
+  evergreen: theme.status.evergreen.glow,
 });
 
 export const getProgressColors = () => ({
   seed: theme.status.seed.progress,
   sprout: theme.status.sprout.progress,
-  tree: theme.status.tree.progress,
+  evergreen: theme.status.evergreen.progress,
 });

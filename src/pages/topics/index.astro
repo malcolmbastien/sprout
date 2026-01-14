@@ -1,0 +1,97 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+import ProfileHeader from "../../components/Profile/ProfileHeader.astro";
+import BackToGarden from "../../components/Navigation/BackToGarden.astro";
+import SiteFooter from "../../components/SiteFooter.astro";
+
+const allPosts = await getCollection("posts");
+
+const topicCounts: Record<string, number> = {};
+allPosts.forEach((post) => {
+    post.data.tags.forEach((topic) => {
+        topicCounts[topic] = (topicCounts[topic] || 0) + 1;
+    });
+});
+
+const sortedTopics = Object.entries(topicCounts).sort((a, b) => a[0].localeCompare(b[0]));
+
+const groupedTopics = sortedTopics.reduce((acc, [topic, count]) => {
+    const firstLetter = topic[0].toUpperCase();
+    if (!acc[firstLetter]) {
+        acc[firstLetter] = [];
+    }
+    acc[firstLetter].push([topic, count]);
+    return acc;
+}, {} as Record<string, typeof sortedTopics>);
+
+const alphabet = Object.keys(groupedTopics).sort();
+---
+
+<Layout
+    title="All Topics - Sprout"
+    description="Browse all topics in the digital garden"
+    type="website"
+>
+    <main class="max-w-7xl mx-auto p-4 md:p-8" data-pagefind-ignore>
+        <ProfileHeader />
+        <BackToGarden class="mb-6" />
+
+        <div class="bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-xl p-6 md:p-8">
+            <h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
+                All Topics
+            </h1>
+            <p class="text-slate-600 dark:text-slate-400 mb-6">
+                Explore {sortedTopics.length} topics across the garden
+            </p>
+
+            <div class="space-y-8">
+                {alphabet.map((letter) => (
+                    <div class="space-y-4">
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">
+                            {letter}
+                        </h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            {groupedTopics[letter].map(([topic, count]) => (
+                                <a
+                                    href={`/topics/${topic}`}
+                                    class="topic-btn flex items-center justify-between rounded-lg px-3 py-2 transition-all hover:scale-105"
+                                >
+                                    <span class="text-sm font-medium capitalize">#{topic}</span>
+                                    <span class="text-sm font-bold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                                        {count}
+                                    </span>
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+        <SiteFooter />
+    </main>
+</Layout>
+
+<style is:global>
+    .topic-btn {
+        background-color: rgb(241 245 249);
+        border: 1px solid rgb(226 232 240);
+        color: rgb(15 23 42);
+        text-decoration: none;
+    }
+    .topic-btn:hover {
+        background-color: rgb(248 250 252);
+        border-color: rgb(15 23 42);
+        color: rgb(15 23 42);
+    }
+    .dark .topic-btn {
+        background-color: transparent;
+        border-color: rgb(71 85 105);
+        color: rgb(203 213 225);
+    }
+    .dark .topic-btn:hover {
+        background-color: rgb(51 65 85);
+        border-color: rgb(203 213 225);
+        color: rgb(203 213 225);
+    }
+</style>

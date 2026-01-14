@@ -13,40 +13,38 @@ const counts = {
     sprout: publishedPosts.filter(
         (p: CollectionEntry<"posts">) => p.data.status === "sprout",
     ).length,
-    tree: publishedPosts.filter(
-        (p: CollectionEntry<"posts">) => p.data.status === "tree",
+    evergreen: publishedPosts.filter(
+        (p: CollectionEntry<"posts">) => p.data.status === "evergreen",
     ).length,
 };
 
 const gravatarUrl =
-    "https://www.gravatar.com/avatar/81a9730219e8014268c171f772fa1741?s=128&d=identicon";
+    "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=128";
+
+const isHome = Astro.url.pathname === "/" || Astro.url.pathname === "/index.html";
+const TitleTag = isHome ? "h1" : "div";
 ---
 
 <div
     class="flex flex-col md:flex-row items-center justify-center gap-6 mb-12 pb-12 border-b border-slate-200 dark:border-slate-800"
+    data-pagefind-ignore
 >
     <Picture
         src={gravatarUrl}
         alt="Avatar"
         inferSize={true}
         loading="eager"
-        class="w-24 h-24 rounded-full border-4 border-white dark:border-slate-900 shadow-sm transition-all duration-500"
+        class="w-32 h-32 rounded-full border-4 border-white dark:border-slate-900 shadow-sm transition-all duration-500"
     />
     <div class="flex-1 text-center md:text-left">
-        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-            <a
-                href="/"
-                class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                >Malcolm's Thoughts</a
-            >
-        </h1>
-        <div class="flex justify-center md:justify-start mb-4">
-            <a
-                href="/about"
-                class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium transition-colors"
-            >
-                About →
-            </a>
+        <div class="flex items-center justify-center md:justify-start gap-4 mb-2">
+            <TitleTag class="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                <a
+                    href="/"
+                    class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                    >My Digital Garden</a
+                >
+            </TitleTag>
         </div>
         <p class="text-slate-600 dark:text-slate-400 mb-4 max-w-xl">
             Exploring ideas, documenting learning, and growing knowledge one
@@ -82,14 +80,14 @@ const gravatarUrl =
             </div>
             <div class="flex items-center gap-1.5">
                 <span
-                    class={`w-5 h-5 rounded-full ${theme.header.tree} flex items-center justify-center text-[10px]`}
-                    >🌳</span
+                    class={`w-5 h-5 rounded-full ${theme.header.evergreen} flex items-center justify-center text-[10px]`}
+                    >🌲</span
                 >
                 <span class="font-semibold text-slate-900 dark:text-slate-200"
-                    >{counts.tree}</span
+                    >{counts.evergreen}</span
                 >
                 <span class="text-slate-500 dark:text-slate-400 font-medium"
-                    >Trees</span
+                    >Evergreen</span
                 >
             </div>
         </div>

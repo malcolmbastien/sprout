@@ -1,0 +1,173 @@
+---
+import Layout from "../layouts/Layout.astro";
+import BackToGarden from "../components/Navigation/BackToGarden.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const packages = [
+    {
+        name: "Astro",
+        description: "The web framework for content-driven websites.",
+        link: "https://astro.build",
+    },
+    {
+        name: "Tailwind CSS",
+        description: "A utility-first CSS framework for rapid UI development.",
+        link: "https://tailwindcss.com",
+    },
+    {
+        name: "Pagefind",
+        description: "A fully static search library that works without a server.",
+        link: "https://pagefind.app",
+    },
+    {
+        name: "Simple Git",
+        description: "Used to extract file history and dates directly from the git repository.",
+        link: "https://github.com/steveukx/git-js",
+    },
+    {
+        name: "@astrojs/sitemap",
+        description: "Automatically generates a sitemap for better SEO.",
+        link: "https://docs.astro.build/en/guides/integrations-guide/sitemap/",
+    },
+    {
+        name: "Remark & Unist",
+        description: "Powerful tools for processing Markdown and building custom content features.",
+        link: "https://remark.js.org/",
+    }
+];
+---
+
+<Layout
+    title="Colophon - Your Name"
+    description="Information about how this website was built and the tools used in its creation."
+    type="website"
+>
+    <main class="max-w-7xl mx-auto p-4 md:p-8" data-pagefind-ignore>
+        <BackToGarden class="mb-6" />
+
+        <div class="max-w-4xl mx-auto">
+            <header class="mb-12">
+                <h1 class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
+                    Colophon
+                </h1>
+                <p class="text-xl text-slate-600 dark:text-slate-300 leading-relaxed">
+                    This website is a digital garden—a collection of thoughts, notes, and experiments.
+                    It is designed to be fast, accessible, and easy to maintain.
+                </p>
+            </header>
+
+            <div class="space-y-12">
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span class="text-emerald-600 dark:text-emerald-400">🛠️</span>
+                        Development & Tools
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                            <h3 class="font-bold text-lg mb-2 text-slate-900 dark:text-white">
+                                <a href="https://zed.dev/" class="hover:text-emerald-600 transition-colors">Zed Editor</a>
+                            </h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                The primary code editor used for building this site. Zed's high-performance
+                                and collaborative features make it an ideal choice for modern web development.
+                            </p>
+                        </div>
+                        <div class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                            <h3 class="font-bold text-lg mb-2 text-slate-900 dark:text-white">
+                                <a href="https://opencode.ai/" class="hover:text-emerald-600 transition-colors">Open Code AI</a>
+                            </h3>
+                            <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                Much of the implementation and technical structure was developed with the
+                                assistance of Open Code AI, an interactive coding tool that helps
+                                translate ideas into functional code.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span class="text-purple-600 dark:text-purple-400">✍️</span>
+                        Writing Workflow
+                    </h2>
+                    <div class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                        <div class="flex flex-col md:flex-row gap-8">
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg mb-2 text-slate-900 dark:text-white">
+                                    <a href="https://obsidian.md/" class="hover:text-emerald-600 transition-colors">Obsidian</a>
+                                </h3>
+                                <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">
+                                    All blog posts and notes are written in Markdown using <a href="https://obsidian.md/" class="text-emerald-600 hover:underline">Obsidian</a>.
+                                    This allows for a seamless connection between personal notes and
+                                    publicly shared content.
+                                </p>
+                                <h3 class="font-bold text-lg mb-2 text-slate-900 dark:text-white">
+                                    <a href="https://github.com/Vinzent03/obsidian-git" class="hover:text-emerald-600 transition-colors">Obsidian Git Plugin</a>
+                                </h3>
+                                <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                                    The site's content is pushed directly from Obsidian to GitHub using the
+                                    <a href="https://github.com/Vinzent03/obsidian-git/" class="text-emerald-600 hover:underline">Obsidian Git</a> plugin, enabling a "write and publish" workflow without leaving
+                                    the writing environment.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span class="text-blue-600 dark:text-blue-400">🚀</span>
+                        Hosting & Deployment
+                    </h2>
+                    <div class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="font-bold text-lg mb-2 text-slate-900 dark:text-white">
+                            <a href="https://obsidian.md/" class="hover:text-emerald-600 transition-colors">GitHub Pages</a>
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            The site is hosted on <a href="https://docs.github.com/en/pages" class="text-emerald-600 hover:underline">GitHub Pages</a>.
+                            Every time content is pushed to the main branch, a GitHub Action triggers a build
+                            process that generates the static site and deploys it automatically.
+                        </p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span class="text-teal-600 dark:text-teal-400">🔡</span>
+                        Typography
+                    </h2>
+                    <div class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                        <h3 class="font-bold text-lg mb-2 text-slate-900 dark:text-white">
+                            <a href="https://rsms.me/inter/" class="hover:text-emerald-600 transition-colors">Inter</a>
+                        </h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            The site uses <a href="https://rsms.me/inter/" class="text-emerald-600 hover:underline">Inter</a>,
+                            a typeface carefully crafted & designed for computer screens by Rasmus Andersson.
+                            It is served via Google Fonts to ensure fast loading and consistent rendering across all devices.
+                        </p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                        <span class="text-orange-600 dark:text-orange-400">📦</span>
+                        Technology Stack
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {packages.map((pkg) => (
+                            <div class="bg-white dark:bg-[#121812] p-4 rounded-lg shadow-sm border border-slate-200 dark:border-slate-800">
+                                <div class="font-bold text-slate-900 dark:text-white mb-1">
+                                    <a href={pkg.link} class="hover:text-emerald-600 transition-colors">{pkg.name}</a>
+                                </div>
+                                <div class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    {pkg.description}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+    <SiteFooter />
+</Layout>

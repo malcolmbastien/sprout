@@ -12,19 +12,40 @@ function getEvolutionLabel(commit: any, index: number, total: number) {
     const isFirst = index === total - 1;
     if (isFirst) return "Seed Planted";
 
-    if (commit.insertions > 20) return "Significant Growth";
-    if (commit.insertions > 0) return "Thought Refined";
-    if (commit.deletions > 0) return "Pruned Content";
+    const { insertions, deletions, message } = commit;
+    const totalChange = insertions + deletions;
+    const netChange = insertions - deletions;
+    const msg = message.toLowerCase();
+
+    // Check for polish/minor tweaks
+    if (msg.includes("typo") || msg.includes("grammar") || (totalChange > 0 && totalChange < 5)) return "Polished";
+    
+    // Check for restructuring (significant changes but net growth is small)
+    if (insertions > 10 && deletions > 10 && Math.abs(netChange) < totalChange * 0.4) return "Restructured";
+
+    if (insertions > 40) return "Major Expansion";
+    if (insertions > 15) return "Significant Growth";
+    if (insertions > 0) return "Thought Refined";
+    if (deletions > 0) return "Pruned Content";
+    
     return "Garden Tended";
 }
 
 function getEvolutionIcon(commit: any, index: number, total: number) {
     const isFirst = index === total - 1;
     if (isFirst) return "🌱";
-    if (commit.insertions > 20) return "🌳";
-    if (commit.insertions > 0) return "✨";
-    if (commit.deletions > 0) return "✂️";
-    return "💧";
+
+    const label = getEvolutionLabel(commit, index, total);
+    switch (label) {
+        case "Polished": return "💅";
+        case "Restructured": return "🔄";
+        case "Major Expansion": return "🌲";
+        case "Significant Growth": return "🌳";
+        case "Thought Refined": return "✨";
+        case "Pruned Content": return "✂️";
+        case "Garden Tended": return "💧";
+        default: return "✨";
+    }
 }
 ---
 
@@ -95,9 +116,15 @@ function getEvolutionIcon(commit: any, index: number, total: number) {
                                             </span>
                                         )}
                                 </div>
-                                <code class="text-[9px] text-slate-300 dark:text-slate-700 uppercase tracking-widest">
+                                <a
+                                    href={`https://github.com/yourusername/your-garden-repo/commit/${commit.hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-[9px] text-slate-300 dark:text-slate-700 uppercase tracking-widest hover:text-slate-400 dark:hover:text-slate-500 transition-colors underline decoration-1 underline-offset-2"
+                                    title="View this commit on GitHub"
+                                >
                                     {commit.hash.substring(0, 7)}
-                                </code>
+                                </a>
                             </div>
                         </div>
                     </li>

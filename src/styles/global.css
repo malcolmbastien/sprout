@@ -352,10 +352,35 @@ html {
 }
 
 /* --- Custom Link Styling for Blog Posts --- */
-.prose a {
+
+/* Default link styling (fallback) */
+.prose a:not(.internal-link):not(.external-link) {
     @apply text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-200;
 }
 
-.prose a:hover {
+.prose a:not(.internal-link):not(.external-link):hover {
     @apply underline decoration-emerald-300 dark:decoration-emerald-600 underline-offset-2;
+}
+
+/* Internal links (within the garden) */
+.prose a.internal-link {
+    @apply text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-200;
+}
+
+.prose a.internal-link:hover {
+    @apply underline decoration-emerald-300 dark:decoration-emerald-600 underline-offset-2;
+}
+
+/* External links (outside the garden) */
+.prose a.external-link {
+    @apply text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors duration-200 relative pr-4;
+}
+
+.prose a.external-link:hover {
+    @apply underline decoration-purple-300 dark:decoration-purple-600 underline-offset-2;
+}
+
+.prose a.external-link::after {
+    content: "↗";
+    @apply absolute right-0 top-[2px] text-[0.7em] opacity-60;
 }

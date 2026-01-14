@@ -1,22 +1,29 @@
 ---
 import Layout from "./Layout.astro";
 import PostHistory from "../components/History/PostHistory.astro";
-import ContentMap from "../components/Navigation/ContentMap.astro";
 import ProfileHeader from "../components/Profile/ProfileHeader.astro";
 import TableOfContents from "../components/Navigation/TableOfContents.astro";
 import Backlinks from "../components/Backlinks.astro";
-import SocialLinks from "../components/Profile/SocialLinks.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import ImageLightbox from "../components/ImageLightbox.astro";
 import { getCollection } from "astro:content";
 import { getStatusColors } from "../lib/theme";
+import { getReadingTime } from "../lib/reading-time";
+import BackToGarden from "../components/Navigation/BackToGarden.astro";
+import { Image } from "astro:assets";
 
 interface Props {
     frontmatter: {
         title: string;
         publishedDate?: Date;
-        status: "seed" | "sprout" | "tree";
-        summary: string;
+        status: "seed" | "sprout" | "evergreen";
+        summary?: string;
         tags: string[];
         draft?: boolean;
+        featuredImage?: any;
+        featuredImageAlt?: string;
+        featured?: boolean;
+        cover?: any;
     };
     filePath: string;
     gitCreated?: Date | null;
@@ -27,14 +34,16 @@ interface Props {
 const { frontmatter, filePath, gitCreated, gitUpdated, backlinkedPostSlugs } =
     Astro.props;
 
-const createdDate = frontmatter.publishedDate || gitCreated || new Date();
-const hasBeenUpdated =
-    gitUpdated && gitUpdated.getTime() > createdDate.getTime() + 1000 * 60 * 60; // More than 1 hour difference
-
-// Get current post content for TOC
+// Get current post content for TOC and reading time
 const allPosts = await getCollection("posts");
 const currentSlug = filePath.split("/").pop()?.replace(".md", "") || "";
 const currentPost = allPosts.find((post) => post.slug === currentSlug);
+
+const readingTime = currentPost ? getReadingTime(currentPost.body) : "";
+
+const createdDate = frontmatter.publishedDate || gitCreated || new Date();
+const hasBeenUpdated =
+    gitUpdated && gitUpdated.getTime() > createdDate.getTime() + 1000 * 60 * 60; // More than 1 hour difference
 
 const statusColors = getStatusColors();
 
@@ -52,6 +61,7 @@ const formatDate = (date: Date) => {
 <Layout
     title={frontmatter.title}
     description={frontmatter.summary}
+    image={frontmatter.featuredImage?.src || frontmatter.cover?.src}
     type="article"
     publishedTime={createdDate.toISOString()}
     modifiedTime={hasBeenUpdated ? gitUpdated!.toISOString() : undefined}
@@ -60,35 +70,15 @@ const formatDate = (date: Date) => {
     <main class="max-w-7xl mx-auto p-4 md:p-8">
         <ProfileHeader />
         <div class="flex flex-col lg:flex-row gap-8">
-            <article
-                class={`flex-1 max-w-4xl ${isPostDraft ? "post-is-draft post-draft-indicator relative" : ""}`}
-            >
-                <ContentMap />
-                <div
+             <article
+                 class={`flex-1 max-w-4xl ${isPostDraft ? "post-is-draft post-draft-indicator relative" : ""}`}
+                 data-pagefind-body
+             >
+                 <div
                     class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm"
                 >
-                    <nav class="mb-8">
-                        <a
-                            href="/"
-                            class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-4 w-4"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                            >
-                                <path
-                                    fill-rule="evenodd"
-                                    d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            Back to Garden
-                        </a>
-                    </nav>
-
                     <header
-                        class="mb-8 border-b border-slate-200 dark:border-slate-600 pb-8"
+                        class="mb-8 border-b border-slate-200 dark:border-slate-600 pb-4"
                     >
                         <div class="flex flex-wrap items-center gap-4 mb-6">
                             <span
@@ -105,8 +95,8 @@ const formatDate = (date: Date) => {
                                     )
                                 }
                                 {
-                                    frontmatter.status === "tree" && (
-                                        <span>🌳</span>
+                                    frontmatter.status === "evergreen" && (
+                                        <span>🌲</span>
                                     )
                                 }
                                 {
@@ -142,11 +132,36 @@ const formatDate = (date: Date) => {
                                         </div>
                                     )
                                 }
+
+                                {
+                                    readingTime && (
+                                        <div class="flex items-center gap-1.5 pl-4 border-l border-slate-200 dark:border-slate-600">
+                                            <span class="font-semibold uppercase tracking-wider text-[10px] text-slate-300 dark:text-slate-600">
+                                                Reading Time
+                                            </span>
+                                            <span>{readingTime}</span>
+                                        </div>
+                                    )
+                                }
                             </div>
                         </div>
 
+                        {
+                            (frontmatter.featuredImage || frontmatter.cover) && (
+                                <div class="mb-8">
+                                    <Image
+                                        src={frontmatter.featuredImage || frontmatter.cover}
+                                        alt={frontmatter.featuredImageAlt || frontmatter.title}
+                                        class="w-full h-auto rounded-xl"
+                                        loading="eager"
+                                    />
+                                </div>
+                            )
+                        }
+
                         <h1
                             class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4"
+                            data-pagefind-meta="title"
                         >
                             {frontmatter.title}
                         </h1>
@@ -155,16 +170,26 @@ const formatDate = (date: Date) => {
                         >
                             {frontmatter.summary}
                         </p>
-                        <div class="flex flex-wrap gap-2">
-                            {
-                                frontmatter.tags.map((tag: string) => (
-                                    <span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-md text-sm border border-slate-100 dark:border-slate-700">
-                                        #{tag}
-                                    </span>
-                                ))
-                            }
-                        </div>
-                    </header>
+                           <div class="flex flex-wrap gap-2">
+                               {
+                                   frontmatter.tags.map((tag: string) => (
+                                       <a
+                                           href={`/topics/${tag}`}
+                                           class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-3 py-1 rounded-md text-sm border border-slate-100 dark:border-slate-700 hover:border-emerald-500/50 hover:text-emerald-600 transition-all"
+                                       >
+                                           #{tag}
+                                       </a>
+                                   ))
+                               }
+                           </div>
+
+
+                          <div id="content-map-container" class="flex flex-row gap-2 mt-4 transition-opacity duration-300 opacity-0 group">
+                            <div id="content-map" class="flex flex-row gap-1.5 items-center max-w-full overflow-hidden">
+                              <!-- Dots will be injected here -->
+                            </div>
+                          </div>
+                      </header>
                     {
                         isPostDraft && (
                             <div class="post-draft-banner">
@@ -196,40 +221,185 @@ const formatDate = (date: Date) => {
                         <PostHistory filePath={filePath} />
                     </footer>
                 </div>
+                <!-- Back to Home Link -->
+                <BackToGarden class="mt-8" />
             </article>
             <TableOfContents
                 content={currentPost?.body || ""}
                 title={frontmatter.title}
             />
         </div>
+        <SiteFooter />
     </main>
 
-    <!-- Footer Widgets Section -->
-    <footer class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-700">
-        <div class="max-w-7xl mx-auto p-4 md:p-8">
-            <div class="grid grid-cols-1 lg:grid-cols-7 gap-6 mb-8">
-                <div class="lg:col-span-2">
-                    <SocialLinks />
-                </div>
-            </div>
+    <ImageLightbox />
 
-            <div
-                class="text-center py-8 border-t border-slate-100 dark:border-slate-800"
-            >
-                <div
-                    class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400"
-                >
-                    <span>©</span>
-                    <time datetime="2026-01-07">
-                        {new Date().getFullYear()}
-                    </time>
-                    <span>Malcolm Bastien</span>
-                    <span>🌱</span>
-                </div>
-                <div class="mt-2 text-xs text-slate-400 dark:text-slate-500">
-                    Built with Astro & Tailwind CSS
-                </div>
-            </div>
-        </div>
-    </footer>
+    <style is:global>
+      @reference "../styles/global.css";
+
+      .map-dot {
+        @apply w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700;
+      }
+
+
+
+      /* Headers */
+      .map-dot-h1, .map-dot-h2 {
+        @apply w-2.5 h-2.5 bg-slate-400 dark:bg-slate-500;
+      }
+      .map-dot-h3, .map-dot-h4 {
+        @apply w-2 h-2 bg-slate-400 dark:bg-slate-600;
+      }
+
+      /* Callouts */
+      .map-dot-callout {
+        @apply w-2.5 h-2.5;
+      }
+      .map-dot-note, .map-dot-info, .map-dot-todo { @apply bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]; }
+      .map-dot-tip, .map-dot-success, .map-dot-done, .map-dot-check { @apply bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]; }
+      .map-dot-important, .map-dot-abstract, .map-dot-summary, .map-dot-tldr { @apply bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]; }
+      .map-dot-warning, .map-dot-caution, .map-dot-attention { @apply bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]; }
+      .map-dot-question, .map-dot-help, .map-dot-faq { @apply bg-amber-600 shadow-[0_0_8px_rgba(217,119,6,0.5)]; }
+      .map-dot-failure, .map-dot-fail, .map-dot-missing, .map-dot-danger, .map-dot-error { @apply bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]; }
+      .map-dot-bug { @apply bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.5)]; }
+      .map-dot-idea { @apply bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.5)]; }
+      .map-dot-example { @apply bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]; }
+      .map-dot-quote, .map-dot-cite { @apply bg-slate-400 dark:bg-slate-500; }
+
+      /* Images */
+      .map-dot-image {
+        @apply bg-purple-500;
+      }
+
+      /* Lists */
+      .map-dot-list, .map-dot-ordered-list {
+        @apply bg-green-500;
+      }
+
+      /* Quotes */
+      .map-dot-quote {
+        @apply bg-yellow-500;
+      }
+
+      /* Code */
+      .map-dot-code {
+        @apply bg-orange-500;
+      }
+
+      /* Tables */
+      .map-dot-table {
+        @apply bg-pink-500;
+      }
+
+      /* Paragraphs */
+      .map-dot-p {
+        @apply bg-slate-400 dark:bg-slate-500;
+      }
+
+      /* Draft */
+      .map-dot-draft, .map-dot-wip {
+        @apply bg-transparent border border-slate-400 dark:border-slate-500 border-dashed scale-110;
+      }
+
+      .inline-tag {
+        @apply no-underline px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 font-medium transition-all hover:bg-emerald-100 dark:hover:bg-emerald-900/50 hover:text-emerald-700 dark:hover:text-emerald-300 border border-emerald-100 dark:border-emerald-800/50;
+      }
+
+      .article-img, article img {
+        @apply transition-transform duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-zoom-in;
+      }
+
+      /* Image Captions */
+      .prose p:has(img):has(em) {
+        @apply flex flex-col items-center mb-8 text-center;
+      }
+
+      .prose p:has(img):has(em) em {
+        @apply text-sm text-slate-500 dark:text-slate-400 mt-2 not-italic;
+      }
+
+      .prose p:has(> img:only-child),
+      .prose p:has(> a > img:only-child) {
+        @apply flex justify-center mb-8;
+      }
+    </style>
+
+    <script>
+      function initContentMap() {
+        const content = document.querySelector('.prose');
+        const map = document.getElementById('content-map');
+        const container = document.getElementById('content-map-container');
+
+        if (!content || !map || !container) return;
+
+        // Clear existing
+        map.innerHTML = '';
+
+        const elements = Array.from(content.children);
+        const indicators: HTMLElement[] = [];
+
+        elements.forEach((el, index) => {
+          const tag = el.tagName.toLowerCase();
+
+          // Filter out elements that are too small or likely metadata (like scripts/styles)
+          if (el instanceof HTMLElement && el.offsetHeight < 5 && !tag.startsWith('h')) return;
+
+          const dot = document.createElement('div');
+          dot.className = 'map-dot';
+
+          // Assign ID to element for scrolling if it doesn't have one
+          if (!el.id) el.id = `content-node-${index}`;
+
+          // Determine type
+          if (tag.startsWith('h')) {
+            dot.classList.add(`map-dot-${tag}`);
+          } else if (el.classList.contains('markdown-alert')) {
+            dot.classList.add('map-dot-callout');
+            const alertType = Array.from(el.classList)
+              .find(c => c.startsWith('markdown-alert-'))
+              ?.replace('markdown-alert-', '');
+            if (alertType) dot.classList.add(`map-dot-${alertType}`);
+          } else if (el.classList.contains('draft-container')) {
+            dot.classList.add('map-dot-draft');
+          } else if (tag === 'img' || tag === 'picture' || tag === 'figure') {
+            dot.classList.add('map-dot-image');
+          } else if (tag === 'ul') {
+            dot.classList.add('map-dot-list');
+          } else if (tag === 'ol') {
+            dot.classList.add('map-dot-ordered-list');
+          } else if (tag === 'blockquote') {
+            dot.classList.add('map-dot-quote');
+          } else if (tag === 'pre' || tag === 'code') {
+            dot.classList.add('map-dot-code');
+          } else if (tag === 'table') {
+            dot.classList.add('map-dot-table');
+          } else if (tag === 'p' || tag === 'div') {
+            dot.classList.add('map-dot-p');
+          } else {
+            // Skip hidden or metadata elements
+            if (el.getBoundingClientRect().height === 0) return;
+            dot.classList.add('map-dot-other');
+          }
+
+
+
+          map.appendChild(dot);
+          indicators.push(dot);
+          (dot as any).targetElement = el;
+        });
+
+        if (indicators.length > 0) {
+          container.classList.remove('hidden');
+          setTimeout(() => container.style.opacity = '1', 100);
+        }
+
+
+      }
+
+      // Run on load
+      initContentMap();
+
+      // Re-run on Astro navigation
+      document.addEventListener('astro:after-swap', initContentMap);
+    </script>
 </Layout>

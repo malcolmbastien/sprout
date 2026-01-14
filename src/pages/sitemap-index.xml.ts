@@ -6,7 +6,7 @@ export async function GET() {
   // Filter out draft posts from sitemap
   const publishedPosts = posts.filter(post => !post.data.draft);
 
-  const baseUrl = 'https://malcolmbastien.github.io';
+  const baseUrl = 'https://yourdomain.com';
 
   const pages = [
     '',

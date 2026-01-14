@@ -3,69 +3,68 @@ import { getCollection } from "astro:content";
 
 const allPosts = await getCollection("posts");
 
-// Aggregate tag counts
-const tagCounts: Record<string, number> = {};
+// Aggregate topic counts
+const topicCounts: Record<string, number> = {};
 allPosts.forEach((post) => {
     post.data.tags.forEach((tag) => {
-        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        topicCounts[tag] = (topicCounts[tag] || 0) + 1;
     });
 });
 
-// Get all tags sorted alphabetically
-const topTags = Object.entries(tagCounts)
-    .sort(([a], [b]) => a.localeCompare(b));
+// Get top 16 topics by count
+const topTopics = Object.entries(topicCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 16);
 ---
 
 <div
     class="bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-xl p-4"
 >
     <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
-        Tags
+        Topics
     </h3>
     <div
-        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5"
+        class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-1.5"
     >
         {
-            topTags.map(([tag, count]) => (
-                <button
-                    class="tag-btn flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors w-full text-left"
-                    data-tag={tag}
+            topTopics.map(([topic, count]) => (
+                <a
+                    href={`/topics/${topic}`}
+                    class="topic-btn flex items-center justify-between rounded-lg px-2.5 py-1.5 transition-colors w-full text-left"
                 >
-                    <span class="text-xs font-medium capitalize">#{tag}</span>
+                    <span class="text-xs font-medium capitalize">#{topic}</span>
                     <span class="text-xs font-bold">{count}</span>
-                </button>
+                </a>
             ))
         }
     </div>
+    <a
+        href="/topics"
+        class="block text-center text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 mt-3 transition-colors"
+    >
+        View all topics →
+    </a>
 </div>
 
 <style is:global>
-    .tag-btn {
+    .topic-btn {
         background-color: rgb(241 245 249);
         border: 1px solid rgb(226 232 240);
         color: rgb(15 23 42);
         transition: all 0.2s;
-        cursor: pointer;
+        text-decoration: none;
     }
-    .tag-btn:hover {
+    .topic-btn:hover {
         background-color: rgb(248 250 252);
+        color: rgb(15 23 42);
     }
-    .tag-btn.active {
-        background-color: oklch(40.5% 0.101 131.063);
-        color: white !important;
-        border-color: rgb(15 23 42) !important;
-    }
-    .dark .tag-btn {
+    .dark .topic-btn {
         background-color: transparent !important;
         border-color: rgb(71 85 105) !important;
         color: rgb(203 213 225) !important;
     }
-    .dark .tag-btn:hover {
+    .dark .topic-btn:hover {
         background-color: rgb(51 65 85) !important;
-    }
-    .dark .tag-btn.active {
-        background-color: rgb(241 245 249) !important;
-        color: rgb(15 23 42) !important;
-        border-color: rgb(241 245 249) !important;
+        color: rgb(203 213 225) !important;
     }
 </style>

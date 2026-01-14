@@ -31,10 +31,32 @@
   }
 
   function handleToggleClick() {
+    // Disable transitions
+    const css = document.createElement('style');
+    css.type = 'text/css';
+    css.appendChild(
+      document.createTextNode(
+        `* {
+           -webkit-transition: none !important;
+           -moz-transition: none !important;
+           -o-transition: none !important;
+           -ms-transition: none !important;
+           transition: none !important;
+        }`
+      )
+    );
+    document.head.appendChild(css);
+
     document.documentElement.classList.toggle("dark");
     const isDark = document.documentElement.classList.contains("dark");
     localStorage.setItem("theme", isDark ? "dark" : "light");
     updateTheme();
+
+    // Trigger a reflow, flushing the CSS changes
+    ((window.getComputedStyle(css).opacity));
+
+    // Remove the style element
+    document.head.removeChild(css);
   }
 
   // Set up the event listener

@@ -3,7 +3,7 @@ import { getCollection } from "astro:content";
 import { getStatusColors } from "../lib/theme";
 
 interface Props {
-  backlinkedPostSlugs: string[];
+    backlinkedPostSlugs: string[];
 }
 
 const { backlinkedPostSlugs } = Astro.props;
@@ -11,74 +11,70 @@ const { backlinkedPostSlugs } = Astro.props;
 // Get all posts to find the ones that link to this post
 const allPosts = await getCollection("posts");
 const backlinkedPosts = allPosts
-  .filter((post) => backlinkedPostSlugs.includes(post.slug))
-  .map((post) => {
-    const displayDate = post.data.publishedDate || new Date();
-    return { ...post, displayDate };
-  })
-  .sort((a, b) => b.displayDate.getTime() - a.displayDate.getTime()); // Most recent first
+    .filter((post) => backlinkedPostSlugs.includes(post.slug))
+    .map((post) => {
+        const displayDate = post.data.publishedDate || new Date();
+        return { ...post, displayDate };
+    })
+    .sort((a, b) => b.displayDate.getTime() - a.displayDate.getTime()); // Most recent first
 
 const statusColors = getStatusColors();
 
 const formatDate = (date: Date) => {
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
 };
 ---
 
-{backlinkedPosts.length > 0 && (
-  <section class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-600">
-    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
-      <svg class="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-      </svg>
-      Links to this post
-    </h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {backlinkedPosts.map((post) => (
-        <a
-          href={`/posts/${post.slug}`}
-          class="group block p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-        >
-          <div class="flex items-center gap-2 mb-2">
-            <span
-              class={`px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
-                post.data.status === "seed"
-                  ? "bg-slate-100 text-slate-600 border-slate-200 dark:border-slate-600"
-                  : post.data.status === "sprout"
-                  ? "bg-green-100 text-green-700 border-green-200 dark:border-green-600"
-                  : "bg-emerald-100 text-emerald-800 border-emerald-200 dark:border-emerald-600"
-              }`}
-            >
-              {post.data.status === "seed" && "🌱"}
-              {post.data.status === "sprout" && "🌿"}
-              {post.data.status === "tree" && "🌳"}
-              {post.data.status}
-            </span>
-          </div>
-          <h4 class="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-2 line-clamp-2">
-            {post.data.title}
-          </h4>
-          <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
-            {post.data.summary}
-          </p>
-          <div class="flex items-center justify-between text-[10px] text-slate-400">
-            <time datetime={post.displayDate.toISOString()}>
-              {post.displayDate.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </time>
-            <div class="flex items-center gap-1">
-              <span>{post.data.tags.length} tag{post.data.tags.length !== 1 ? "s" : ""}</span>
+{
+    backlinkedPosts.length > 0 && (
+        <section class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-600">
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
+                Links to this post
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {backlinkedPosts.map((post) => (
+                    <a
+                        href={`/posts/${post.slug}`}
+                        class="group block p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <div class="flex items-center gap-2 mb-2">
+                            <span
+                                class={`px-1.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${
+                                    post.data.status === "seed"
+                                        ? "bg-slate-100 text-slate-600 border-slate-200 dark:border-slate-600"
+                                        : post.data.status === "sprout"
+                                          ? "bg-green-100 text-green-700 border-green-200 dark:border-green-600"
+                                          : "bg-emerald-100 text-emerald-800 border-emerald-200 dark:border-emerald-600"
+                                }`}
+                            >
+                                {post.data.status === "seed" && "🌱"}
+                                {post.data.status === "sprout" && "🌿"}
+                                {post.data.status === "evergreen" && "🌲"}
+                                {post.data.status}
+                            </span>
+                        </div>
+                        <h4 class="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-2 line-clamp-2">
+                            {post.data.title}
+                        </h4>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
+                            {post.data.summary}
+                        </p>
+                        <div class="flex items-center justify-between text-[10px] text-slate-400">
+                            <time datetime={post.displayDate.toISOString()}>
+                                {post.displayDate.toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                })}
+                            </time>
+                        </div>
+                    </a>
+                ))}
             </div>
-          </div>
-        </a>
-      ))}
-    </div>
-  </section>
-)}
+        </section>
+    )
+}

@@ -1,56 +1,48 @@
 import { visit } from 'unist-util-visit';
 
-export function remarkWikiLinks() {
+export function remarkHashtags() {
   return (tree) => {
     visit(tree, 'text', (node, index, parent) => {
       if (!node.value) return;
+      
+      // Skip if already inside a link or image
       if (parent && (parent.type === 'link' || parent.type === 'image')) return;
 
-      // Match wiki-style links: [[link-text]] or [[link-text|display-text]]
-      const wikiLinkRegex = /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+      // Match hashtags: #tag-name
+      // Preceded by start of line or space
+      // Consists of # followed by letters, numbers, hyphens, or underscores
+      const hashtagRegex = /(^|\s)#([\w-]+)/g;
       
       const newChildren = [];
       let lastIndex = 0;
       let match;
 
-      while ((match = wikiLinkRegex.exec(node.value)) !== null) {
-        const [fullMatch, linkText, displayText] = match;
+      while ((match = hashtagRegex.exec(node.value)) !== null) {
+        const [fullMatch, space, tagName] = match;
         const matchIndex = match.index;
 
-        // Skip if preceded by ! (it's a standard markdown image)
-        if (matchIndex > 0 && node.value[matchIndex - 1] === '!') {
-          continue;
-        }
-
-        // Add text before the link
-        if (matchIndex > lastIndex) {
+        // Add text before the hashtag (including the leading space if captured)
+        const textBeforeMatchEnd = matchIndex + space.length;
+        if (textBeforeMatchEnd > lastIndex) {
           newChildren.push({
             type: 'text',
-            value: node.value.slice(lastIndex, matchIndex)
+            value: node.value.slice(lastIndex, textBeforeMatchEnd)
           });
         }
 
-        // Generate slug from link text
-        const slug = linkText
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
-
-        // Create link node
+        // Create link node for the hashtag pointing to /topics/
         const linkNode = {
           type: 'link',
-          url: `/posts/${slug}`,
-          title: linkText,
+          url: `/topics/${tagName}`,
+          title: `#${tagName}`,
           data: {
             hProperties: {
-              className: 'internal-link'
+              className: 'inline-tag'
             }
           },
           children: [{
             type: 'text',
-            value: displayText || linkText
+            value: `#${tagName}`
           }]
         };
 

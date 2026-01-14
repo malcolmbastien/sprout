@@ -1,0 +1,225 @@
+---
+import { getStatusColors } from "../lib/theme";
+import { Image } from "astro:assets";
+
+interface Props {
+    sortedEvents: Array<{
+        type: string;
+        post: any;
+        date: Date;
+        title: string;
+        count?: number;
+    }>;
+    allMonths: Array<{
+        key: string;
+        date: Date;
+        hasActivity: boolean;
+    }>;
+    eventsByMonthKey: Map<string, any[]>;
+}
+
+const { sortedEvents, allMonths, eventsByMonthKey } = Astro.props;
+const statusColors = getStatusColors();
+
+// Find the index of the first month with activity (most recent)
+const firstActiveMonthIndex = allMonths.findIndex((m) => m.hasActivity);
+
+// If there's a month with activity, show it first. Otherwise show first month.
+const initialVisibleMonth =
+    firstActiveMonthIndex !== -1
+        ? allMonths[firstActiveMonthIndex]
+        : allMonths.length > 0
+          ? allMonths[0]
+          : null;
+
+// All months after the initial visible one go to hidden container
+const startIndex = initialVisibleMonth
+    ? allMonths.findIndex((m) => m.key === initialVisibleMonth.key) + 1
+    : 0;
+const hiddenMonths = allMonths.slice(startIndex);
+---
+
+<div class="timeline max-w-4xl mx-auto" id="timeline">
+    {
+        allMonths.map((month) => {
+            const monthKey = month.key;
+            const monthEvents = eventsByMonthKey.get(monthKey) ?? null;
+
+            return (
+                <div class="month-section" data-month={monthKey}>
+                    {/* Month header */}
+                    <div class="month-divider py-2">
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">
+                            {monthKey}
+                        </h3>
+                    </div>
+
+                    {monthEvents && monthEvents.length > 0 ? (
+                        /* Events for this month */
+                        <div class="month-events space-y-2">
+                             {monthEvents.map((event: any) => {
+                                 const icon =
+                                     event.type === "created" ? "➕" : "✏️";
+                                 const isFeatured = event.post.data.featured;
+
+                                 return (
+                                         <div
+                                             class={`timeline-event flex flex-col md:flex-row md:items-stretch gap-4 p-4 bg-white dark:bg-[#121812] border transition-all relative z-10 rounded-xl cursor-pointer group ${
+                                                 isFeatured 
+                                                 ? "border-emerald-500/30 bg-emerald-50/10 dark:bg-emerald-500/5 shadow-sm ring-1 ring-emerald-500/20" 
+                                                 : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                             }`}
+                                              data-status={event.post.data.status}
+                                              data-title={event.title.toLowerCase()}
+                                              data-summary={
+                                                  event.post.data.summary?.toLowerCase() ||
+                                                  ""
+                                              }
+                                              data-topics={event.post.data.tags
+                                                  .join(" ")
+                                                  .toLowerCase()}
+
+                                             data-created={
+                                                 event.date
+                                                     .toISOString()
+                                                     .split("T")[0]
+                                             }
+                                             data-event-year={event.date.getFullYear().toString()}
+                                             data-event-type={event.type}
+                                             data-is-collapsed={event.isCollapsed ? "true" : "false"}
+                                         >
+                                         <div class="flex flex-1 items-start gap-4 min-w-0 w-full">
+                                            <div class="shrink-0 w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl">
+                                                {icon}
+                                            </div>
+
+                                            <div class="flex-1 min-w-0 flex flex-col self-stretch">
+                                                <h4 class="font-bold text-lg text-slate-900 dark:text-slate-100 mb-1">
+                                                    <a
+                                                        href={`/posts/${event.post.slug}`}
+                                                        class="group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors after:absolute after:inset-0"
+                                                    >
+                                                        {event.title}
+                                                    </a>
+                                                </h4>
+                                                <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                                                    {event.post.data.summary ||
+                                                        ""}
+                                                </p>
+                                                <div class="flex items-center gap-3 mt-auto pt-3">
+                                                    <span
+                                                        class={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusColors[event.post.data.status as keyof typeof statusColors]}`}
+                                                    >
+                                                        {event.post.data
+                                                            .status === "seed"
+                                                            ? "🌱"
+                                                            : event.post.data
+                                                                    .status ===
+                                                                "sprout"
+                                                               ? "🌿"
+                                                               : "🌲"}{" "}
+                                                        {event.post.data.status}
+                                                    </span>
+
+                                                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                                                        {event.type === "created" ? "Created" : "Updated"}
+                                                        {event.count ? ` (${event.count})` : ""}
+                                                    </span>
+
+                                                    <div class="flex flex-wrap gap-1">
+                                                        {event.post.data.tags
+                                                            .slice(0, 2)
+                                                            .map(
+                                                                (
+                                                                    tag: string,
+                                                                ) => (
+                                                                    <span class="text-xs text-slate-500 dark:text-slate-400">
+                                                                        {"#" +
+                                                                            tag}
+                                                                    </span>
+                                                                ),
+                                                            )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {isFeatured && event.post.data.cover && (
+                                                <div class="hidden md:block w-48 h-32 shrink-0 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                                                    <Image
+                                                        src={event.post.data.cover}
+                                                        alt={event.title}
+                                                        class="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            )}
+                                         </div>
+
+                                         <div class="shrink-0 w-24 flex flex-col items-end gap-1 ml-auto">
+                                             <time
+                                                 class="text-sm text-slate-500 dark:text-slate-400 text-right"
+                                                 title={event.date.toLocaleString()}
+                                             >
+                                                 {event.date.toLocaleDateString(
+                                                     "en-US",
+                                                     {
+                                                         month: "short",
+                                                         day: "numeric",
+                                                         year: event.date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined
+                                                     },
+                                                 )}
+                                             </time>
+                                         </div>
+
+                                         {/* Mobile cover image */}
+                                         {isFeatured && event.post.data.cover && (
+                                             <div class="md:hidden w-full h-48 shrink-0 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 mt-2">
+                                                 <Image
+                                                     src={event.post.data.cover}
+                                                     alt={event.title}
+                                                     class="w-full h-full object-cover"
+                                                 />
+                                             </div>
+                                         )}
+                                     </div>
+                                 );
+                             })}
+                        </div>
+                    ) : (
+                        /* No activity message */
+                        <div class="month-no-activity p-6 text-center bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
+                            <p class="text-sm text-slate-600 dark:text-slate-400 italic">
+                                There was no activity during this period.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+        })
+    }
+
+    {/* No results message */}
+    <div id="no-results" class="hidden text-center py-12">
+        <p class="text-slate-600 dark:text-slate-400">
+            No activity matches your filters.
+        </p>
+    </div>
+
+    {/* Show more activity button */}
+    <div class="text-center mt-8">
+        <button
+            id="show-more-activity"
+            class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors hidden"
+        >
+            Show more activity
+        </button>
+    </div>
+</div>
+
+<style>
+    .month-no-activity {
+        border: 2px dashed rgb(203 213 225);
+    }
+    .dark .month-no-activity {
+        border-color: rgb(71 85 105);
+    }
+</style>

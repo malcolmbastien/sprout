@@ -1,0 +1,79 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import TopicFocus from "../components/Profile/TopicFocus.astro";
+import GardenStats from "../components/Profile/GardenStats.astro";
+import SocialLinks from "../components/Profile/SocialLinks.astro";
+import {
+    getProgressColors,
+} from "../lib/theme";
+import { getFileDates } from "../lib/git-history";
+
+const allPosts = await getCollection("posts");
+
+const postsWithDates = await Promise.all(
+    allPosts.map(async (post) => {
+        const filePath = `src/content/posts/${post.id}`;
+        const { created, updated } = await getFileDates(filePath);
+        return {
+            ...post,
+            displayDate: post.data.publishedDate || created || new Date(),
+            updatedDate: updated || created || new Date(),
+        };
+    }),
+);
+
+// Sort posts for stats
+const sortedPosts = postsWithDates.sort(
+    (a, b) => b.displayDate.valueOf() - a.displayDate.valueOf(),
+);
+
+// Compute post counts by status (excluding drafts for stats)
+const publishedPosts = allPosts.filter((post) => post.data);
+const counts = {
+    all: publishedPosts.length,
+    seed: publishedPosts.filter((p: any) => p.data.status === "seed").length,
+    sprout: publishedPosts.filter((p: any) => p.data.status === "sprout")
+        .length,
+    evergreen: publishedPosts.filter((p: any) => p.data.status === "evergreen").length,
+};
+
+const progressColors = getProgressColors();
+---
+
+<footer class="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+    <div class="max-w-7xl mx-auto pt-4 md:pt-2">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <SocialLinks />
+            <TopicFocus />
+            <GardenStats
+                counts={counts}
+                sortedPosts={sortedPosts}
+                allPosts={allPosts}
+                progressColors={progressColors}
+            />
+        </div>
+
+        <!-- Copyright Footer -->
+        <div
+            class="text-center py-8 border-t border-slate-100 dark:border-slate-800"
+        >
+            <div
+                class="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400"
+            >
+                <span>©</span>
+                <time datetime="2026-01-07">
+                    {new Date().getFullYear()}
+                </time>
+                <span>Your Name</span>
+                <span>•</span>
+                <a href="/about" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">About</a>
+                <span>•</span>
+                <a href="/colophon" class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">Colophon</a>
+                <span>🌱</span>
+            </div>
+            <div class="mt-2 text-xs text-slate-400 dark:text-slate-500">
+                Built with Astro & Tailwind CSS
+            </div>
+        </div>
+    </div>
+</footer>
