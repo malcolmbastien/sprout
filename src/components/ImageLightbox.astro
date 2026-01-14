@@ -11,8 +11,13 @@
             id="lightbox-img"
             src=""
             alt=""
-            class="max-w-full max-h-full object-contain shadow-2xl transition-transform duration-300 scale-95 cursor-zoom-out"
+            class="max-w-full max-h-[85vh] object-contain shadow-2xl transition-transform duration-300 scale-95 cursor-zoom-out"
         />
+        
+        <div 
+            id="lightbox-caption" 
+            class="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/90 text-center px-6 py-3 bg-black/60 backdrop-blur-md max-w-[90%] md:max-w-2xl rounded-2xl text-sm md:text-base opacity-0 transition-all duration-300 translate-y-4 border border-white/10"
+        ></div>
         
         <button
             id="lightbox-close"
@@ -30,13 +35,27 @@
     function initLightbox() {
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
+        const lightboxCaption = document.getElementById('lightbox-caption');
         const closeBtn = document.getElementById('lightbox-close');
         
         if (!lightbox || !lightboxImg || !closeBtn) return;
 
-        function openLightbox(src: string, alt: string) {
+        function openLightbox(src: string, alt: string, caption?: string) {
             lightboxImg.src = src;
             lightboxImg.alt = alt;
+            
+            if (lightboxCaption) {
+                if (caption) {
+                    lightboxCaption.textContent = caption;
+                    lightboxCaption.classList.remove('opacity-0', 'translate-y-4');
+                    lightboxCaption.classList.add('opacity-100', 'translate-y-0');
+                } else {
+                    lightboxCaption.textContent = '';
+                    lightboxCaption.classList.remove('opacity-100', 'translate-y-0');
+                    lightboxCaption.classList.add('opacity-0', 'translate-y-4');
+                }
+            }
+
             lightbox?.classList.remove('opacity-0', 'pointer-events-none');
             lightbox?.classList.add('opacity-100');
             lightboxImg?.classList.remove('scale-95');
@@ -50,12 +69,19 @@
             lightbox?.classList.remove('opacity-100');
             lightboxImg?.classList.remove('scale-100');
             lightboxImg?.classList.add('scale-95');
+            
+            if (lightboxCaption) {
+                lightboxCaption.classList.remove('opacity-100', 'translate-y-0');
+                lightboxCaption.classList.add('opacity-0', 'translate-y-4');
+            }
+
             document.body.style.overflow = '';
             lightbox?.setAttribute('aria-hidden', 'true');
             // Clear src after transition to avoid flicker next time
             setTimeout(() => {
                 if (lightbox?.classList.contains('opacity-0')) {
                     lightboxImg.src = '';
+                    if (lightboxCaption) lightboxCaption.textContent = '';
                 }
             }, 300);
         }
@@ -66,9 +92,44 @@
             const images = article.querySelectorAll('img');
             images.forEach(img => {
                 const imageEl = img as HTMLImageElement;
+                
+                // Skip icons or small decorative images
+                if (imageEl.width < 100 && imageEl.height < 100) return;
+
                 imageEl.classList.add('cursor-zoom-in');
                 imageEl.addEventListener('click', () => {
-                    openLightbox(imageEl.src, imageEl.alt);
+                    // Try to find a caption
+                    let caption = '';
+                    
+                    // 1. Check for figcaption if wrapped in figure
+                    const figure = imageEl.closest('figure');
+                    if (figure) {
+                        const figcaption = figure.querySelector('figcaption');
+                        if (figcaption) caption = figcaption.textContent || '';
+                    }
+                    
+                    // 2. Check for em tag in the same paragraph (common pattern in this blog)
+                    if (!caption) {
+                        const parentP = imageEl.closest('p');
+                        if (parentP) {
+                            const em = parentP.querySelector('em');
+                            if (em) {
+                                caption = em.textContent || '';
+                            } else {
+                                // If no em, take all text content of the paragraph
+                                // but exclude the image itself if it had alt text that might be included
+                                const text = parentP.textContent?.trim() || '';
+                                if (text) caption = text;
+                            }
+                        }
+                    }
+                    
+                    // 3. Fallback to alt text if it's descriptive and not just the filename
+                    if (!caption && imageEl.alt && !imageEl.alt.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                        caption = imageEl.alt;
+                    }
+
+                    openLightbox(imageEl.src, imageEl.alt, caption);
                 });
             });
         }

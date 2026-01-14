@@ -23,7 +23,7 @@ const {
     publishedTime,
     modifiedTime,
     tags = [],
-    author = "Your Name",
+    author = "Malcolm Bastien",
 } = Astro.props;
 
 // Generate canonical URL
@@ -33,13 +33,13 @@ const canonicalUrl = new URL(Astro.url.pathname, Astro.site || url).href;
 const ogImage = image.startsWith("http") ? image : url + image;
 ---
 
-<html lang="en" class="scroll-smooth">
+<html lang="en">
     <head>
         <meta charset="utf-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <meta name="fediverse:creator" content="@yourname@mastodon.social" />
+        <meta name="fediverse:creator" content="@malcolm@mastodon.social" />
 
         <!-- Inter Font for better readability -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -127,6 +127,8 @@ const ogImage = image.startsWith("http") ? image : url + image;
         <!-- Search indexing -->
         <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
         <script src="/pagefind/pagefind-ui.js" is:inline></script>
+
+        <slot name="head" />
 
         <script is:inline>
             const theme = (() => {

@@ -6,10 +6,12 @@ import ProfileHeader from "../components/Profile/ProfileHeader.astro";
 import YearNavigation from "../components/YearNavigation.astro";
 import PostTimeline from "../components/PostTimeline.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import { getStatusColors } from "../lib/theme";
 import { getBatchFileDates, type FileDates } from "../lib/git-history";
 
 const allPosts = await getCollection("posts");
 const batchDates = (await getBatchFileDates()) as Map<string, FileDates>;
+const statusColors = getStatusColors();
 
 // Fetch git dates for all posts to create timeline events
 const postsWithDates = allPosts.map((post) => {
@@ -223,6 +225,50 @@ const currentYearValue = new Date().getFullYear();
     description="A digital garden of thoughts and ideas. Explore seeds, sprouts, and evergreens of knowledge in this ever-growing collection of writings."
     type="website"
 >
+    <style slot="head" is:inline set:html={
+        sortedYears.map(y => `
+        /* Instant CSS-driven filtering */
+        html[data-selected-year="${y.year}"] .timeline-event:not([data-event-year="${y.year}"]),
+        html[data-selected-year="${y.year}"] .month-section:not([data-year="${y.year}"]) {
+            display: none !important;
+        }
+
+        /* Initial batching protection (before JS takes over) */
+        html:not(.js-initialized)[data-selected-year="${y.year}"] .timeline-event[data-event-year="${y.year}"][data-is-initial-batch="false"] {
+            display: none !important;
+        }
+        html:not(.js-initialized)[data-selected-year="${y.year}"] .month-section[data-year="${y.year}"]:not(:has(.timeline-event[data-event-year="${y.year}"][data-is-initial-batch="true"])) {
+            display: none !important;
+        }
+        
+        /* Instant Sidebar Highlighting */
+        html[data-selected-year="${y.year}"] .year-btn[data-year="${y.year}"] {
+            background-color: #059669;
+            color: white;
+            border-color: #0f172a !important;
+        }
+        html[data-selected-year="${y.year}"] .year-btn[data-year="${y.year}"] span.text-slate-500 {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        html[data-selected-year="${y.year}"] .year-btn[data-year="${y.year}"] .activity-dots div {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+        .dark html[data-selected-year="${y.year}"] .year-btn[data-year="${y.year}"] {
+            background-color: #10b981;
+        }
+        html[data-selected-year="${y.year}"] .year-item:has(.year-btn[data-year="${y.year}"]) .month-submenu {
+            display: block !important;
+        }
+        `).join('')
+    } />
+    <script slot="head" is:inline>
+        // Set the selected year as early as possible in the HEAD to allow for CSS-driven filtering
+        (function() {
+            const savedYear = localStorage.getItem('selectedYear');
+            const currentYear = new Date().getFullYear().toString();
+            document.documentElement.setAttribute('data-selected-year', savedYear || currentYear);
+        })();
+    </script>
     <main class="max-w-7xl mx-auto p-4 md:p-8" data-pagefind-ignore>
         <ProfileHeader />
 
@@ -264,8 +310,8 @@ const currentYearValue = new Date().getFullYear();
                                     </p>
                                 )}
                                 <div class="mt-4 flex items-center gap-3">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">
-                                        {post.data.status}
+                                    <span class={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${statusColors[post.data.status as keyof typeof statusColors]}`}>
+                                        {post.data.status === "seed" ? "🌱" : post.data.status === "sprout" ? "🌿" : "🌲"} {post.data.status}
                                     </span>
                                     {post.data.tags.slice(0, 2).map((tag) => (
                                         <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
@@ -306,8 +352,8 @@ const currentYearValue = new Date().getFullYear();
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                         {post.displayDate?.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
                                     </span>
-                                    <span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
-                                        {post.data.status}
+                                    <span class={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold uppercase tracking-wider ${statusColors[post.data.status as keyof typeof statusColors]}`}>
+                                        {post.data.status === "seed" ? "🌱" : post.data.status === "sprout" ? "🌿" : "🌲"} {post.data.status}
                                     </span>
                                 </div>
                                 <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
@@ -368,6 +414,7 @@ const currentYearValue = new Date().getFullYear();
                     sortedEvents={sortedEvents}
                     allMonths={allMonths}
                     eventsByMonthKey={eventsByMonthKey}
+                    initialYear={currentYearValue.toString()}
                 />
             </div>
         </div>
@@ -395,6 +442,11 @@ const currentYearValue = new Date().getFullYear();
     .custom-sidebar-scroll::-webkit-scrollbar-thumb {
         @apply bg-slate-200 dark:bg-slate-800 rounded-full;
     }
+
+    /* CSS-driven filtering for instant load */
+    .timeline-event.hidden-by-filter {
+        display: none !important;
+    }
 </style>
 
 <script>
@@ -410,10 +462,16 @@ const currentYearValue = new Date().getFullYear();
     const timelineEvents = document.querySelectorAll(".timeline-event");
     const noResults = document.getElementById("no-results");
 
+    // Prevent browser from automatically restoring scroll position which can cause jumps
+    // when we dynamically filter content on load.
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+
     let currentFilter = "all";
     let currentTopic = "";
     let currentEventType = "all";
-    let currentYear = new Date().getFullYear().toString();
+    let currentYear = document.documentElement.getAttribute('data-selected-year') || new Date().getFullYear().toString();
     let currentDateFilter: string | null = null;
     let itemsToShow = 10;
 
@@ -437,6 +495,9 @@ const currentYearValue = new Date().getFullYear();
             const matchesTopic = currentTopic === "" || (htmlEvent.dataset.topics || "").includes(currentTopic);
             const matchesEventType =
                 currentEventType === "all" || eventType === currentEventType;
+            
+            // Year matching is now handled by CSS for the initial paint, 
+            // but we keep this check for the "totalMatchingCount" and "Show More" logic.
             const matchesYear =
                 currentYear === "all" || eventYear === currentYear;
 
@@ -461,13 +522,13 @@ const currentYearValue = new Date().getFullYear();
             ) {
                 totalMatchingCount++;
                 if (visibleCount < itemsToShow) {
-                    htmlEvent.style.display = "flex";
+                    htmlEvent.classList.remove("hidden-by-filter");
                     visibleCount++;
                 } else {
-                    htmlEvent.style.display = "none";
+                    htmlEvent.classList.add("hidden-by-filter");
                 }
             } else {
-                htmlEvent.style.display = "none";
+                htmlEvent.classList.add("hidden-by-filter");
             }
         });
 
@@ -478,7 +539,7 @@ const currentYearValue = new Date().getFullYear();
                 htmlSection.querySelectorAll(".timeline-event"),
             );
             const hasVisibleEvent = eventsInSection.some(
-                (e) => (e as HTMLElement).style.display !== "none",
+                (e) => !(e as HTMLElement).classList.contains("hidden-by-filter")
             );
 
             if (hasVisibleEvent) {
@@ -566,51 +627,51 @@ const currentYearValue = new Date().getFullYear();
     const yearButtons = document.querySelectorAll(".year-btn");
     const monthButtons = document.querySelectorAll(".month-btn");
 
+    function selectYear(year: string, button: HTMLElement, isManualClick: boolean = false) {
+        const yearItem = button.closest(".year-item") as HTMLElement;
+        const monthSubmenu = yearItem?.querySelector(
+            ".month-submenu",
+        ) as HTMLElement;
+
+        itemsToShow = 10;
+
+        // Update the data attribute for CSS filtering (instant highlighting/hiding)
+        document.documentElement.setAttribute('data-selected-year', year);
+
+        if (currentYear === year) {
+            if (monthSubmenu && isManualClick) {
+                // If it's a manual click on the same year, we toggle the submenu
+                // But we check if it was previously forced visible by CSS or JS
+                monthSubmenu.classList.toggle("hidden");
+            }
+        } else {
+            // Note: .active class removal is still done for manual clicks to clean up 
+            // any JS-applied states, though CSS attribute handles most styling now.
+            yearButtons.forEach((btn) => {
+                btn.classList.remove("active");
+                const item = btn.closest(".year-item");
+                const submenu = item?.querySelector(".month-submenu");
+                if (submenu) submenu.classList.add("hidden");
+            });
+            
+            // We set the variable but let the [data-selected-year] handle the UI
+            currentYear = year;
+
+            if (window.updateHeatmapYear) {
+                window.updateHeatmapYear(parseInt(year));
+            }
+        }
+        updateDisplay();
+    }
+
     yearButtons.forEach((button) => {
         button.addEventListener("click", (event) => {
             const year = (button as HTMLElement).dataset.year || "all";
-            const yearItem = button.closest(".year-item") as HTMLElement;
-            const monthSubmenu = yearItem?.querySelector(
-                ".month-submenu",
-            ) as HTMLElement;
-
-            itemsToShow = 10;
-
-            if (currentYear === year) {
-                if (monthSubmenu) {
-                    monthSubmenu.classList.toggle("hidden");
-                }
-            } else {
-                yearButtons.forEach((btn) => {
-                    btn.classList.remove("active");
-                    const item = btn.closest(".year-item");
-                    const submenu = item?.querySelector(".month-submenu");
-                    if (submenu) submenu.classList.add("hidden");
-                });
-                button.classList.add("active");
-                currentYear = year;
-
-                if (monthSubmenu) {
-                    monthSubmenu.classList.remove("hidden");
-                }
-
-                if (window.updateHeatmapYear) {
-                    window.updateHeatmapYear(parseInt(year));
-                }
-
-                // ONLY scroll if the click was triggered by a real human (isTrusted)
-                // This prevents the page from jumping on initial load
-                if (event.isTrusted) {
-                    const heatmap = document.getElementById("activity-heatmap");
-                    if (heatmap) {
-                        heatmap.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start",
-                        });
-                    }
-                }
-            }
-            updateDisplay();
+            
+            // Preserve the selected year in local storage
+            localStorage.setItem('selectedYear', year);
+            
+            selectYear(year, button as HTMLElement, event.isTrusted);
         });
     });
 
@@ -622,23 +683,13 @@ const currentYearValue = new Date().getFullYear();
             itemsToShow = 500; // Increase limit to ensure month content is visible
 
             if (currentYear !== year) {
+                localStorage.setItem('selectedYear', year);
                 const yearBtn = document.querySelector(
                     `.year-btn[data-year="${year}"]`,
-                );
-                if (yearBtn) (yearBtn as HTMLElement).click();
+                ) as HTMLElement;
+                if (yearBtn) selectYear(year, yearBtn, false);
             }
 
-            const monthSection = document.querySelector(
-                `.month-section[data-month="${monthKey}"]`,
-            );
-            if (monthSection) {
-                setTimeout(() => {
-                    monthSection.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
-                    });
-                }, 50);
-            }
             updateDisplay();
         });
     });
@@ -668,22 +719,38 @@ const currentYearValue = new Date().getFullYear();
         event.addEventListener("blur", (e) => e.stopPropagation(), true);
     });
 
-    // Automatically select current year on initial load
-    window.addEventListener("DOMContentLoaded", () => {
-        const yearStr = new Date().getFullYear().toString();
-        const yearBtn = document.querySelector(
-            `.year-btn[data-year="${yearStr}"]`,
-        );
+    // Automatically select current year or preserved year on initial load
+    // We run this immediately because the script is at the bottom of the body
+    const initYearSelection = () => {
+        const savedYear = localStorage.getItem('selectedYear');
+        const currentYearStr = new Date().getFullYear().toString();
+        const yearToSelect = savedYear || currentYearStr;
 
-        currentYear = "all";
+        let yearBtn = document.querySelector(
+            `.year-btn[data-year="${yearToSelect}"]`,
+        ) as HTMLElement;
+
+        // If saved year button doesn't exist anymore, fallback to current year
+        if (!yearBtn && savedYear) {
+            yearBtn = document.querySelector(
+                `.year-btn[data-year="${currentYearStr}"]`,
+            ) as HTMLElement;
+        }
 
         if (yearBtn) {
-            (yearBtn as HTMLElement).click();
+            selectYear(yearBtn.dataset.year || currentYearStr, yearBtn, false);
         } else {
             const allYearBtns = document.querySelectorAll(".year-btn");
             if (allYearBtns.length > 0) {
-                (allYearBtns[0] as HTMLElement).click();
+                const firstBtn = allYearBtns[0] as HTMLElement;
+                selectYear(firstBtn.dataset.year || currentYearStr, firstBtn, false);
             }
         }
-    });
+
+        // Handover: Signaling that JS is ready to handle filtering.
+        // This removes the "initial batch" CSS restriction.
+        document.documentElement.classList.add('js-initialized');
+    };
+
+    initYearSelection();
 </script>

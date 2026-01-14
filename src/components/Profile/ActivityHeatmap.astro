@@ -190,7 +190,10 @@ function getFillColor(count: number, isDarkMode: boolean) {
     <script define:vars={{ events, year }}>
         // Store the currently selected date and year
         let selectedDate = null;
-        let currentYear = year;
+        
+        // Initialize currentYear from the attribute set by the head script if available, 
+        // otherwise fallback to the server-provided default
+        let currentYear = parseInt(document.documentElement.getAttribute('data-selected-year')) || year;
 
         // Function to get Tailwind classes for colors
         function getColor(count) {
@@ -495,5 +498,10 @@ function getFillColor(count: number, isDarkMode: boolean) {
             }
 		`;
         document.head.appendChild(style);
+        // Initialize from attribute or default
+        const initialYear = parseInt(document.documentElement.getAttribute('data-selected-year')) || year;
+        if (initialYear !== year) {
+            window.updateHeatmapYear(initialYear);
+        }
     </script>
 </div>

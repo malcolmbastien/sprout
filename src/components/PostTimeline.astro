@@ -16,27 +16,24 @@ interface Props {
         hasActivity: boolean;
     }>;
     eventsByMonthKey: Map<string, any[]>;
+    initialYear?: string;
 }
 
-const { sortedEvents, allMonths, eventsByMonthKey } = Astro.props;
+const { sortedEvents, allMonths, eventsByMonthKey, initialYear } = Astro.props;
 const statusColors = getStatusColors();
 
-// Find the index of the first month with activity (most recent)
-const firstActiveMonthIndex = allMonths.findIndex((m) => m.hasActivity);
+// Pre-calculate which events are in the initial batch (first 10) for each year
+// to allow for instant, flicker-free rendering via CSS.
+const yearCounters = new Map<number, number>();
+const eventBatchStatus = new Map<any, boolean>();
 
-// If there's a month with activity, show it first. Otherwise show first month.
-const initialVisibleMonth =
-    firstActiveMonthIndex !== -1
-        ? allMonths[firstActiveMonthIndex]
-        : allMonths.length > 0
-          ? allMonths[0]
-          : null;
-
-// All months after the initial visible one go to hidden container
-const startIndex = initialVisibleMonth
-    ? allMonths.findIndex((m) => m.key === initialVisibleMonth.key) + 1
-    : 0;
-const hiddenMonths = allMonths.slice(startIndex);
+// We process events in the same order they appear in the timeline (sorted descending)
+sortedEvents.forEach((event) => {
+    const year = event.date.getFullYear();
+    const count = yearCounters.get(year) || 0;
+    eventBatchStatus.set(event, count < 10);
+    yearCounters.set(year, count + 1);
+});
 ---
 
 <div class="timeline max-w-4xl mx-auto" id="timeline">
@@ -44,9 +41,14 @@ const hiddenMonths = allMonths.slice(startIndex);
         allMonths.map((month) => {
             const monthKey = month.key;
             const monthEvents = eventsByMonthKey.get(monthKey) ?? null;
+            const monthYear = month.date.getFullYear().toString();
 
             return (
-                <div class="month-section" data-month={monthKey}>
+                <div 
+                    class="month-section" 
+                    data-month={monthKey}
+                    data-year={monthYear}
+                >
                     {/* Month header */}
                     <div class="month-divider py-2">
                         <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -61,6 +63,8 @@ const hiddenMonths = allMonths.slice(startIndex);
                                  const icon =
                                      event.type === "created" ? "➕" : "✏️";
                                  const isFeatured = event.post.data.featured;
+                                 const eventYear = event.date.getFullYear().toString();
+                                 const isInitialBatch = eventBatchStatus.get(event);
 
                                  return (
                                          <div
@@ -84,9 +88,10 @@ const hiddenMonths = allMonths.slice(startIndex);
                                                      .toISOString()
                                                      .split("T")[0]
                                              }
-                                             data-event-year={event.date.getFullYear().toString()}
+                                             data-event-year={eventYear}
                                              data-event-type={event.type}
                                              data-is-collapsed={event.isCollapsed ? "true" : "false"}
+                                             data-is-initial-batch={isInitialBatch ? "true" : "false"}
                                          >
                                          <div class="flex flex-1 items-start gap-4 min-w-0 w-full">
                                             <div class="shrink-0 w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl">
