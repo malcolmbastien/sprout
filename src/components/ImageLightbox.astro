@@ -11,7 +11,7 @@
             id="lightbox-img"
             src=""
             alt=""
-            class="max-w-full max-h-[85vh] object-contain shadow-2xl transition-all duration-300 scale-95 cursor-zoom-out"
+            class="max-w-full max-h-[85vh] object-contain shadow-2xl scale-95 cursor-zoom-out"
         />
         
         <div 
@@ -76,28 +76,20 @@
             currentIndex = index;
             const img = allImages[currentIndex];
 
-            // Start fade out
-            lightboxImg.classList.add('opacity-0');
-            if (lightboxCaption) lightboxCaption.classList.add('opacity-0');
-
-            setTimeout(() => {
-                lightboxImg.src = img.src;
-                lightboxImg.alt = img.alt;
-                
-                if (lightboxCaption) {
-                    if (img.caption) {
-                        lightboxCaption.textContent = img.caption;
-                        lightboxCaption.classList.remove('opacity-0', 'translate-y-4');
-                        lightboxCaption.classList.add('opacity-100', 'translate-y-0');
-                    } else {
-                        lightboxCaption.textContent = '';
-                        lightboxCaption.classList.remove('opacity-100', 'translate-y-0');
-                        lightboxCaption.classList.add('opacity-0', 'translate-y-4');
-                    }
+            lightboxImg.src = img.src;
+            lightboxImg.alt = img.alt;
+            
+            if (lightboxCaption) {
+                if (img.caption) {
+                    lightboxCaption.textContent = img.caption;
+                    lightboxCaption.classList.remove('opacity-0', 'translate-y-4');
+                    lightboxCaption.classList.add('opacity-100', 'translate-y-0');
+                } else {
+                    lightboxCaption.textContent = '';
+                    lightboxCaption.classList.remove('opacity-100', 'translate-y-0');
+                    lightboxCaption.classList.add('opacity-0', 'translate-y-4');
                 }
-                
-                lightboxImg.classList.remove('opacity-0');
-            }, 150);
+            }
 
             // Show/hide nav buttons
             if (allImages.length > 1) {
