@@ -46,6 +46,8 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 - **📅 Date Filtering:** Click any active day in the activity heatmap to filter posts by creation/update date.
 
 ### **🎨 Design & UX**
+- **🖼️ Automatic Galleries:** Paragraphs with multiple images are automatically transformed into responsive masonry layouts.
+- **🔍 Interactive Lightbox:** Click any image to view it in full-screen with navigation, zoom effects, and caption support.
 - **📖 Enhanced Core Pages:** Polished **About** and **Colophon** pages to share your personal story and the technical stack behind your garden.
 - **📝 Semantic Callouts:** Rich support for GitHub-style alerts and custom garden callouts like `[!IDEA]`, `[!QUESTION]`, and `[!DRAFT]`.
 - **🌓 Adaptive Themes:** Green-tinted light and dark modes with a persistent toggle.
@@ -111,7 +113,17 @@ Your content here...
 
 > [!IDEA]
 > What if everything was a garden?
+
+### **Photo Galleries**
+Place multiple images in a single paragraph (no empty lines between them) to create an automatic masonry gallery:
+
+```markdown
+![Mountain View](../../assets/image1.jpg)
+*Sunrise over the peaks*
+![Forest Path](../../assets/image2.jpg)
+*Morning mist in the trees*
 ```
+Adding *emphasis text* immediately after an image will automatically use it as a caption in both the gallery and the lightbox.
 
 ## 🛠️ Project Structure
 
