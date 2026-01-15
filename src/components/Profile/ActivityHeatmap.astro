@@ -191,9 +191,9 @@ function getFillColor(count: number, isDarkMode: boolean) {
         // Store the currently selected date and year
         let selectedDate = null;
         
-        // Initialize currentYear from the attribute set by the head script if available, 
-        // otherwise fallback to the server-provided default
-        let currentYear = parseInt(document.documentElement.getAttribute('data-selected-year')) || year;
+        // Initialize currentYear to the year provided by the server.
+        // This MUST match what was rendered in the HTML initially.
+        let currentYear = year;
 
         // Function to get Tailwind classes for colors
         function getColor(count) {
