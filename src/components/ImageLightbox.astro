@@ -11,7 +11,7 @@
             id="lightbox-img"
             src=""
             alt=""
-            class="max-w-full max-h-[85vh] object-contain shadow-2xl transition-transform duration-300 scale-95 cursor-zoom-out"
+            class="max-w-full max-h-[85vh] object-contain shadow-2xl transition-all duration-300 scale-95 cursor-zoom-out"
         />
         
         <div 
@@ -19,6 +19,26 @@
             class="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/90 text-center px-6 py-3 bg-black/60 backdrop-blur-md max-w-[90%] md:max-w-2xl rounded-2xl text-sm md:text-base opacity-0 transition-all duration-300 translate-y-4 border border-white/10"
         ></div>
         
+        <button
+            id="lightbox-prev"
+            class="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-all p-2 md:p-4 hover:scale-110 opacity-0 pointer-events-none"
+            aria-label="Previous image"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-12 md:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+
+        <button
+            id="lightbox-next"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-all p-2 md:p-4 hover:scale-110 opacity-0 pointer-events-none"
+            aria-label="Next image"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-12 md:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+
         <button
             id="lightbox-close"
             class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-2"
@@ -32,21 +52,73 @@
 </div>
 
 <script>
+    interface LightboxImage {
+        src: string;
+        alt: string;
+        caption: string;
+    }
+
     function initLightbox() {
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightbox-img') as HTMLImageElement;
         const lightboxCaption = document.getElementById('lightbox-caption');
         const closeBtn = document.getElementById('lightbox-close');
+        const prevBtn = document.getElementById('lightbox-prev');
+        const nextBtn = document.getElementById('lightbox-next');
         
-        if (!lightbox || !lightboxImg || !closeBtn) return;
+        if (!lightbox || !lightboxImg || !closeBtn || !prevBtn || !nextBtn) return;
 
-        function openLightbox(src: string, alt: string, caption?: string) {
-            lightboxImg.src = src;
-            lightboxImg.alt = alt;
+        let allImages: LightboxImage[] = [];
+        let currentIndex = 0;
+
+        function updateLightbox(index: number) {
+            if (index < 0 || index >= allImages.length) return;
+            currentIndex = index;
+            const img = allImages[currentIndex];
+
+            // Start fade out
+            lightboxImg.classList.add('opacity-0');
+            if (lightboxCaption) lightboxCaption.classList.add('opacity-0');
+
+            setTimeout(() => {
+                lightboxImg.src = img.src;
+                lightboxImg.alt = img.alt;
+                
+                if (lightboxCaption) {
+                    if (img.caption) {
+                        lightboxCaption.textContent = img.caption;
+                        lightboxCaption.classList.remove('opacity-0', 'translate-y-4');
+                        lightboxCaption.classList.add('opacity-100', 'translate-y-0');
+                    } else {
+                        lightboxCaption.textContent = '';
+                        lightboxCaption.classList.remove('opacity-100', 'translate-y-0');
+                        lightboxCaption.classList.add('opacity-0', 'translate-y-4');
+                    }
+                }
+                
+                lightboxImg.classList.remove('opacity-0');
+            }, 150);
+
+            // Show/hide nav buttons
+            if (allImages.length > 1) {
+                prevBtn?.classList.remove('opacity-0', 'pointer-events-none');
+                nextBtn?.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                prevBtn?.classList.add('opacity-0', 'pointer-events-none');
+                nextBtn?.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function openLightbox(index: number) {
+            currentIndex = index;
+            const img = allImages[currentIndex];
+            
+            lightboxImg.src = img.src;
+            lightboxImg.alt = img.alt;
             
             if (lightboxCaption) {
-                if (caption) {
-                    lightboxCaption.textContent = caption;
+                if (img.caption) {
+                    lightboxCaption.textContent = img.caption;
                     lightboxCaption.classList.remove('opacity-0', 'translate-y-4');
                     lightboxCaption.classList.add('opacity-100', 'translate-y-0');
                 } else {
@@ -62,6 +134,11 @@
             lightboxImg?.classList.add('scale-100');
             document.body.style.overflow = 'hidden';
             lightbox?.setAttribute('aria-hidden', 'false');
+
+            if (allImages.length > 1) {
+                prevBtn?.classList.remove('opacity-0', 'pointer-events-none');
+                nextBtn?.classList.remove('opacity-0', 'pointer-events-none');
+            }
         }
 
         function closeLightbox() {
@@ -75,9 +152,12 @@
                 lightboxCaption.classList.add('opacity-0', 'translate-y-4');
             }
 
+            prevBtn?.classList.add('opacity-0', 'pointer-events-none');
+            nextBtn?.classList.add('opacity-0', 'pointer-events-none');
+
             document.body.style.overflow = '';
             lightbox?.setAttribute('aria-hidden', 'true');
-            // Clear src after transition to avoid flicker next time
+            
             setTimeout(() => {
                 if (lightbox?.classList.contains('opacity-0')) {
                     lightboxImg.src = '';
@@ -86,62 +166,101 @@
             }, 300);
         }
 
+        function showNext(e?: Event) {
+            e?.stopPropagation();
+            const nextIndex = (currentIndex + 1) % allImages.length;
+            updateLightbox(nextIndex);
+        }
+
+        function showPrev(e?: Event) {
+            e?.stopPropagation();
+            const prevIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+            updateLightbox(prevIndex);
+        }
+
         // Add click listeners to all images in the article content
         const article = document.querySelector('article');
         if (article) {
-            const images = article.querySelectorAll('img');
-            images.forEach(img => {
+            const imgElements = Array.from(article.querySelectorAll('img')).filter(img => {
                 const imageEl = img as HTMLImageElement;
-                
-                // Skip icons or small decorative images
-                if (imageEl.width < 100 && imageEl.height < 100) return;
+                return imageEl.width >= 100 || imageEl.height >= 100;
+            }) as HTMLImageElement[];
 
-                imageEl.classList.add('cursor-zoom-in');
-                imageEl.addEventListener('click', () => {
-                    // Try to find a caption
-                    let caption = '';
-                    
-                    // 1. Check for figcaption if wrapped in figure
+            allImages = imgElements.map(imageEl => {
+                let caption = '';
+                
+                // 1. Check for .gallery-item (from remark-gallery)
+                const galleryItem = imageEl.closest('.gallery-item');
+                if (galleryItem) {
+                    const em = galleryItem.querySelector('em');
+                    if (em) caption = em.textContent || '';
+                }
+
+                // 2. Check for figcaption if wrapped in figure
+                if (!caption) {
                     const figure = imageEl.closest('figure');
                     if (figure) {
                         const figcaption = figure.querySelector('figcaption');
                         if (figcaption) caption = figcaption.textContent || '';
                     }
-                    
-                    // 2. Check for em tag in the same paragraph (common pattern in this blog)
-                    if (!caption) {
-                        const parentP = imageEl.closest('p');
-                        if (parentP) {
-                            const em = parentP.querySelector('em');
-                            if (em) {
-                                caption = em.textContent || '';
-                            } else {
-                                // If no em, take all text content of the paragraph
-                                // but exclude the image itself if it had alt text that might be included
-                                const text = parentP.textContent?.trim() || '';
-                                if (text) caption = text;
-                            }
-                        }
+                }
+                
+                // 3. Check for em tag in the same paragraph
+                if (!caption) {
+                    const parentP = imageEl.closest('p');
+                    if (parentP) {
+                        const em = parentP.querySelector('em');
+                        if (em) caption = em.textContent || '';
                     }
-                    
-                    // 3. Fallback to alt text if it's descriptive and not just the filename
-                    if (!caption && imageEl.alt && !imageEl.alt.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
-                        caption = imageEl.alt;
-                    }
+                }
+                
+                // 4. Fallback to alt text
+                if (!caption && imageEl.alt && !imageEl.alt.match(/\.(jpg|jpeg|png|webp|gif)$/i)) {
+                    caption = imageEl.alt;
+                }
 
-                    openLightbox(imageEl.src, imageEl.alt, caption);
+                return {
+                    src: imageEl.src,
+                    alt: imageEl.alt,
+                    caption: caption.trim()
+                };
+            });
+
+            imgElements.forEach((img, index) => {
+                img.classList.add('cursor-zoom-in');
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openLightbox(index);
                 });
             });
         }
 
-        // Close on click
-        lightbox.addEventListener('click', () => {
+        // Close on backdrop click
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox || e.target === lightbox.firstElementChild) {
+                closeLightbox();
+            }
+        });
+
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             closeLightbox();
         });
 
-        // Close on escape key
+        prevBtn.addEventListener('click', showPrev);
+        nextBtn.addEventListener('click', showNext);
+
+        // Prevent closing when clicking the image or caption
+        lightboxImg.addEventListener('click', (e) => e.stopPropagation());
+        lightboxCaption?.addEventListener('click', (e) => e.stopPropagation());
+
+        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
+            if (lightbox.classList.contains('opacity-0')) return;
+
             if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') showNext();
+            if (e.key === 'ArrowLeft') showPrev();
         });
     }
 

@@ -314,13 +314,65 @@ const formatDate = (date: Date) => {
         @apply flex flex-col items-center mb-8 text-center;
       }
 
+      .prose p:has(img):has(em) img {
+        @apply mb-0;
+      }
+
       .prose p:has(img):has(em) em {
-        @apply text-sm text-slate-500 dark:text-slate-400 mt-2 not-italic;
+        @apply text-sm text-slate-500 dark:text-slate-400 mt-1 not-italic;
       }
 
       .prose p:has(> img:only-child),
       .prose p:has(> a > img:only-child) {
         @apply flex justify-center mb-8;
+      }
+
+      /* Photo Gallery (Masonry Layout) */
+      .photo-gallery {
+        column-count: 1;
+        column-gap: 1.5rem;
+        @apply mb-12;
+      }
+
+      @media (min-width: 640px) {
+        .photo-gallery {
+          column-count: 2;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .photo-gallery {
+          column-count: 3;
+        }
+      }
+
+      .gallery-item {
+        break-inside: avoid;
+        @apply mb-6 flex flex-col items-center h-auto relative overflow-hidden rounded-xl cursor-zoom-in;
+      }
+
+      .gallery-item:hover img {
+        @apply scale-[1.02];
+      }
+
+      .gallery-item img {
+        @apply m-0 w-full h-auto object-cover rounded-xl shadow-sm transition-all duration-500 ease-out;
+      }
+
+      .gallery-item em {
+        @apply absolute bottom-0 left-0 right-0 p-4 pt-8 text-sm text-white not-italic opacity-0 translate-y-2 transition-all duration-300 ease-out pointer-events-none z-10;
+        background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+      }
+
+      .gallery-item:hover em {
+        @apply opacity-100 translate-y-0;
+      }
+
+      @media (max-width: 640px) {
+        .photo-gallery {
+          @apply gap-4;
+          grid-template-columns: 1fr;
+        }
       }
     </style>
 
