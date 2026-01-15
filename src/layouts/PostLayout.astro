@@ -327,6 +327,14 @@ const formatDate = (date: Date) => {
         @apply flex justify-center mb-8;
       }
 
+      /* Disable automatic quotes on blockquotes */
+      .prose blockquote p:first-of-type::before {
+        content: none;
+      }
+      .prose blockquote p:last-of-type::after {
+        content: none;
+      }
+
       /* Photo Gallery (Masonry Layout) */
       .photo-gallery {
         column-count: 1;
