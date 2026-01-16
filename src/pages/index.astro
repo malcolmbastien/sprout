@@ -310,7 +310,7 @@ const currentYearValue = new Date().getFullYear();
                                     </p>
                                 )}
                                 <div class="mt-4 flex items-center gap-3">
-                                    <span class={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm ${statusColors[post.data.status as keyof typeof statusColors]}`}>
+                                    <span class={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${statusColors[post.data.status as keyof typeof statusColors]}`}>
                                         {post.data.status === "seed" ? "🌱" : post.data.status === "sprout" ? "🌿" : "🌲"} {post.data.status}
                                     </span>
                                     {post.data.tags.slice(0, 2).map((tag) => (
@@ -352,7 +352,7 @@ const currentYearValue = new Date().getFullYear();
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                         {post.displayDate?.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
                                     </span>
-                                    <span class={`text-[10px] px-1.5 py-0.5 rounded-sm font-bold uppercase tracking-wider ${statusColors[post.data.status as keyof typeof statusColors]}`}>
+                                    <span class={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${statusColors[post.data.status as keyof typeof statusColors]}`}>
                                         {post.data.status === "seed" ? "🌱" : post.data.status === "sprout" ? "🌿" : "🌲"} {post.data.status}
                                     </span>
                                 </div>

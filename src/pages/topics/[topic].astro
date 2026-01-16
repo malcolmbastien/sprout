@@ -4,6 +4,7 @@ import Layout from "../../layouts/Layout.astro";
 import ProfileHeader from "../../components/Profile/ProfileHeader.astro";
 import BackToGarden from "../../components/Navigation/BackToGarden.astro";
 import SiteFooter from "../../components/SiteFooter.astro";
+import { getStatusColors } from "../../lib/theme";
 
 export async function getStaticPaths() {
     const allPosts = await getCollection("posts");
@@ -20,6 +21,8 @@ const { topic } = Astro.params;
 
 const allPosts = await getCollection("posts");
 const filteredPosts = allPosts.filter((post) => post.data.tags.includes(topic));
+
+const statusColors = getStatusColors();
 
 const sortedPosts = filteredPosts.sort(
     (a, b) =>
@@ -65,14 +68,15 @@ const sortedPosts = filteredPosts.sort(
                         >
                             <div class="flex items-center gap-2 mb-2">
                                 <span
-                                    class={`px-2 py-0.5 rounded text-xs font-medium ${
-                                        post.data.status === "seed"
-                                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                            : post.data.status === "sprout"
-                                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-                                              : "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
-                                    }`}
+                                    class={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusColors[post.data.status as keyof typeof statusColors]}`}
                                 >
+                                    {
+                                        post.data.status === "seed"
+                                            ? "🌱"
+                                            : post.data.status === "sprout"
+                                              ? "🌿"
+                                              : "🌲"
+                                    }{" "}
                                     {post.data.status}
                                 </span>
                                 {post.data.publishedDate && (

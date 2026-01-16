@@ -10,6 +10,14 @@ import SiteFooter from "../components/SiteFooter.astro";
     title="Search - Sprout Digital Garden"
     description="Search through the thoughts, seeds, and sprouts of my digital garden."
 >
+    <Fragment slot="head">
+        {import.meta.env.PROD && (
+            <>
+                <link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+                <script src="/pagefind/pagefind-ui.js" is:inline></script>
+            </>
+        )}
+    </Fragment>
     <main class="max-w-7xl mx-auto p-4 md:p-8 min-h-screen" data-pagefind-ignore>
         <ProfileHeader />
 

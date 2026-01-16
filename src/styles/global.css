@@ -370,11 +370,33 @@ html {
 
 /* Internal links (within the garden) */
 .prose a.internal-link {
-  @apply text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-200;
+    @apply text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors duration-200 inline-flex items-center gap-1 no-underline;
 }
 
-.prose a.internal-link:hover {
-  @apply underline decoration-emerald-300 dark:decoration-emerald-600 underline-offset-2;
+.prose a.internal-link:hover .link-text {
+    @apply underline decoration-emerald-300 dark:decoration-emerald-600 underline-offset-2;
+}
+
+.prose a.internal-link::after {
+    @apply opacity-60 text-[0.85em] no-underline transition-opacity inline-block;
+    font-style: normal;
+    text-decoration: none !important;
+}
+
+.prose a.internal-link[data-status="seed"]::after {
+    content: "🌱";
+}
+
+.prose a.internal-link[data-status="sprout"]::after {
+    content: "🌿";
+}
+
+.prose a.internal-link[data-status="evergreen"]::after {
+    content: "🌲";
+}
+
+.prose a.internal-link:hover::after {
+    @apply opacity-100;
 }
 
 /* External links (outside the garden) */
