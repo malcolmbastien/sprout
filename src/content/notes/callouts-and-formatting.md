@@ -1,6 +1,6 @@
 ---
 title: "Callouts and Special Formatting"
-status: "sprout"
+stage: "sprout"
 tags: ["formatting", "callouts", "markdown"]
 summary: "Explore the rich callout system and special formatting features in Sprout."
 publishedDate: 2024-01-08

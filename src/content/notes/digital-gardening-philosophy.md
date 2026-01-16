@@ -1,6 +1,6 @@
 ---
 title: "The Art of Digital Gardening"
-status: "tree"
+stage: "evergreen"
 tags: ["philosophy", "gardening", "growth", "metaphors"]
 summary: "Exploring the philosophy behind digital gardens and how they mirror natural growth patterns."
 publishedDate: 2024-01-08

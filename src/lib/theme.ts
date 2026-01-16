@@ -2,14 +2,14 @@
  * Centralized Theme Configuration
  *
  * Edit colors in this file to change them throughout the entire application.
- * All status-related colors (badges, progress bars, hover effects, headers)
+ * All stage-related colors (badges, progress bars, hover effects, headers)
  * are defined here for consistency and easy maintenance.
  *
  * Note: Glow effects are now applied inline based on card state (slate/emerald/amber)
- * rather than post status, for better visual consistency.
+ * rather than post stage, for better visual consistency.
  *
  * Usage:
- * - import { getStatusColors, getStatusGlows, getProgressColors } from '../lib/theme'
+ * - import { getStageColors, getStageGlows, getProgressColors } from '../lib/theme'
  * - Or access theme object directly: import { theme } from '../lib/theme'
  */
 export const theme = {
@@ -21,7 +21,7 @@ export const theme = {
     evergreen: "bg-emerald-300/40 dark:bg-emerald-600/40 border border-emerald-500 dark:border-emerald-800",
   },
 
-  status: {
+  stage: {
     seed: {
       // badge on post card and in post header
       badge:
@@ -47,20 +47,20 @@ export const theme = {
 };
 
 // Helper functions to get theme values
-export const getStatusColors = () => ({
-  seed: theme.status.seed.badge,
-  sprout: theme.status.sprout.badge,
-  evergreen: theme.status.evergreen.badge,
+export const getStageColors = () => ({
+  seed: theme.stage.seed.badge,
+  sprout: theme.stage.sprout.badge,
+  evergreen: theme.stage.evergreen.badge,
 });
 
-export const getStatusGlows = () => ({
-  seed: theme.status.seed.glow,
-  sprout: theme.status.sprout.glow,
-  evergreen: theme.status.evergreen.glow,
+export const getStageGlows = () => ({
+  seed: theme.stage.seed.glow,
+  sprout: theme.stage.sprout.glow,
+  evergreen: theme.stage.evergreen.glow,
 });
 
 export const getProgressColors = () => ({
-  seed: theme.status.seed.progress,
-  sprout: theme.status.sprout.progress,
-  evergreen: theme.status.evergreen.progress,
+  seed: theme.stage.seed.progress,
+  sprout: theme.stage.sprout.progress,
+  evergreen: theme.stage.evergreen.progress,
 });

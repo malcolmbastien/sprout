@@ -29,12 +29,12 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 ### **📚 Content Management**
 - **🌱 Growth States:** Categorize your thoughts as **Seed**, **Sprout**, or **Evergreen** to reflect their maturity.
 - **📌 Pinned Posts:** Highlight foundational thoughts at the top of your homepage for easy access.
-- **🌟 Featured Posts:** Make significant posts stand out in the timeline with larger cards and cover images.
+- **🌟 Featured Notes:** Make significant notes stand out in the timeline with larger cards and cover images.
 - **🏷️ Flexible Tagging:** Support for both frontmatter tags and inline `#hashtag` style tagging within your content.
 - **📖 Reading Time Estimates:** Automatic calculation of estimated reading time for each post.
 - **🔗 Backlinks:** Automatic tracking of connections between your thoughts, showing every other post that links to the current one.
-- **📋 Table of Contents:** Auto-generated navigation for posts with multiple headings (desktop only).
-- **🏗️ Drafting System:** Support for marking entire posts or specific blocks as in-progress with unique "under construction" styling.
+- **📋 Table of Contents:** Auto-generated navigation for notes with multiple headings (desktop only).
+- **🏗️ Drafting System:** Support for marking entire notes or specific blocks as in-progress with unique "under construction" styling.
 
 ### **🔍 Discovery & Navigation**
 - **🗺️ Content Map:** A unique visual header on every post page that visualizes the structure (headers, callouts, paragraphs) and provides a sense of length and landmarks.
@@ -42,8 +42,8 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 - **🔍 Post Search:** Instant, full-text client-side search to help visitors find specific thoughts.
 - **📂 Topic Index:** A comprehensive page listing all garden topics with post counts for easy exploration.
 - **🔗 Smart Link Detection:** Visual distinction between internal wiki-links and external references, including "link distinction" styling.
-- **📅 Post Timeline:** A chronological overview of your garden's activity, showing when posts were created or updated.
-- **📅 Date Filtering:** Click any active day in the activity heatmap to filter posts by creation/update date.
+- **📅 Note Timeline:** A chronological overview of your garden's activity, showing when notes were created or updated.
+- **📅 Date Filtering:** Click any active day in the activity heatmap to filter notes by creation/update date.
 
 ### **🎨 Design & UX**
 - **🖼️ Automatic Galleries:** Paragraphs with multiple images are automatically transformed into responsive masonry layouts.
@@ -91,14 +91,14 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 3. **Open the garden:**
    Navigate to `http://localhost:4321` in your browser.
 
-## ✍️ Creating New Posts
+## ✍️ Creating New Notes
 
-Posts are located in `src/content/posts/`. To create a new one, add a `.md` file:
+Notes are located in `src/content/notes/`. To create a new one, add a `.md` file:
 
 ```markdown
 ---
 title: My New Discovery
-status: seed # seed | sprout | evergreen
+stage: seed # seed | sprout | evergreen
 tags:
   - learning
   - webdev
@@ -127,7 +127,7 @@ Adding *emphasis text* immediately after an image will automatically use it as a
 
 ## 🛠️ Project Structure
 
-- `src/content/`: Your blog posts and collection configuration.
+- `src/content/`: Your notes and collection configuration.
 - `src/assets/` : Your images to serve in blog posts
 - `src/components/`: Reusable UI elements (Heatmap, Content Map, Table of Contents, Toggle, etc.).
 - `src/layouts/`: Page wrappers (Main Layout and Post Layout).
@@ -154,11 +154,11 @@ export const theme = {
 };
 ```
 
-### **Post Frontmatter Options**
+### **Note Frontmatter Options**
 ```markdown
 ---
 title: My Post Title
-status: seed        # seed | sprout | evergreen
+stage: seed        # seed | sprout | evergreen
 tags:
   - tag1
   - tag2
@@ -166,7 +166,7 @@ summary: Brief description
 publishedDate: 2026-01-08  # Optional, defaults to Git creation date
 draft: true              # Optional, adds WIP banner
 pinned: true            # Optional, adds to Pinned section on homepage
-featured: true            # Optional, creates larger entry in post timeline if cover image is set
+featured: true            # Optional, creates larger entry in note timeline if cover image is set
 cover: "../../assets/cover-image.jpg"  # Optional, required to create featured post.
 ---
 ```
@@ -178,7 +178,7 @@ This project is configured for **GitHub Pages** via GitHub Actions. Any push to 
 ### **SEO & Performance**
 - **Automatic Sitemap:** Generated at `/sitemap-index.xml` with proper priorities and change frequencies
 - **Robots.txt:** Configured for optimal crawling
-- **Structured Data:** JSON-LD schema markup for blog posts
+- **Structured Data:** JSON-LD schema markup for notes
 - **Meta Tags:** Complete Open Graph and Twitter Card support
 - **Performance:** Optimized builds with efficient client-side filtering
 

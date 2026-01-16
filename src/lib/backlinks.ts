@@ -27,33 +27,39 @@ function extractWikiLinks(content: string): string[] {
 
 // Function to build the backlinks map
 export async function buildBacklinksMap(): Promise<Record<string, string[]>> {
-  const posts = await getCollection('posts');
+  const notes = await getCollection('notes');
   const backlinksMap: Record<string, string[]> = {};
 
-  // Initialize empty arrays for all posts
-  posts.forEach(post => {
-    backlinksMap[post.slug] = [];
+  // Initialize empty arrays for all notes
+  notes.forEach(note => {
+    backlinksMap[note.slug] = [];
   });
 
-  // Extract links from each post and build the backlinks map
-  posts.forEach(post => {
-    // post.body contains the raw markdown content
-    const content = post.body || '';
-    const linkedSlugs = extractWikiLinks(content);
+  // Extract links from each note and build the backlinks map
+  notes.forEach(note => {
+    // note.body contains the raw markdown content
+    const content = note.body || '';
+    const linkedIds = extractWikiLinks(content);
 
-    // Add this post as a backlink for each post it links to
-    linkedSlugs.forEach(linkedSlug => {
-      // Only add if the linked post exists (avoid broken links)
-      if (backlinksMap[linkedSlug] !== undefined && linkedSlug !== post.slug) {
-        backlinksMap[linkedSlug].push(post.slug);
+    // Add this note as a backlink for each note it links to
+    linkedIds.forEach(linkedId => {
+      // Only add if the linked note exists (avoid broken links)
+      if (backlinksMap[linkedId] !== undefined && linkedId !== note.slug) {
+        backlinkedIdsForTarget(backlinksMap[linkedId], note.slug);
       }
     });
   });
   return backlinksMap;
 }
 
-// Function to get backlinks for a specific post
-export async function getBacklinksForPost(postSlug: string): Promise<string[]> {
+function backlinkedIdsForTarget(backlinks: string[], id: string) {
+    if (!backlinks.includes(id)) {
+        backlinks.push(id);
+    }
+}
+
+// Function to get backlinks for a specific note
+export async function getBacklinksForNote(noteId: string): Promise<string[]> {
   const backlinksMap = await buildBacklinksMap();
-  return backlinksMap[postSlug] || [];
+  return backlinksMap[noteId] || [];
 }

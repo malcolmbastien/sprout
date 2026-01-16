@@ -15,6 +15,14 @@
                 placeholder: "Search the garden..."
             }
         });
+        
+        // Auto-focus the search input
+        setTimeout(() => {
+            const searchInput = document.querySelector(".pagefind-ui__search-input");
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }, 100);
     } else {
         const container = document.querySelector("#search-box");
         if (container) {

@@ -4,50 +4,50 @@ import Layout from "../layouts/Layout.astro";
 import ActivityHeatmap from "../components/Profile/ActivityHeatmap.astro";
 import ProfileHeader from "../components/Profile/ProfileHeader.astro";
 import YearNavigation from "../components/YearNavigation.astro";
-import PostTimeline from "../components/PostTimeline.astro";
+import NoteTimeline from "../components/NoteTimeline.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { getStatusColors } from "../lib/theme";
+import { getStageColors } from "../lib/theme";
 import { getBatchFileDates, type FileDates } from "../lib/git-history";
 
-const allPosts = await getCollection("posts");
+const allNotes = await getCollection("notes");
 const batchDates = (await getBatchFileDates()) as Map<string, FileDates>;
-const statusColors = getStatusColors();
+const stageColors = getStageColors();
 
-// Fetch git dates for all posts to create timeline events
-const postsWithDates = allPosts.map((post) => {
-    const id = post.id;
-    const dates = batchDates.get(`src/content/posts/${id}`) ||
-                  batchDates.get(`src/content/posts/${id}.md`) ||
-                  batchDates.get(`src/content/posts/${id}.mdx`);
+// Fetch git dates for all notes to create timeline events
+const notesWithDates = allNotes.map((note) => {
+    const id = note.id;
+    const dates = batchDates.get(`src/content/notes/${id}`) ||
+                  batchDates.get(`src/content/notes/${id}.md`) ||
+                  batchDates.get(`src/content/notes/${id}.mdx`);
 
     const created = dates?.created;
     const allGitDates = dates?.allDates || new Set<string>();
 
-    const displayDate = post.data.publishedDate || created;
+    const displayDate = note.data.publishedDate || created;
 
     return {
-        ...post,
+        ...note,
         displayDate,
         allGitDates,
     };
-}).filter(post => post.displayDate); // Only show posts that have a valid date from frontmatter or git
+}).filter(note => note.displayDate); // Only show notes that have a valid date from frontmatter or git
 
 // Create timeline events
 const events: any[] = [];
-postsWithDates.forEach((post) => {
-    const displayDate = post.displayDate as Date;
+notesWithDates.forEach((note) => {
+    const displayDate = note.displayDate as Date;
     const displayDateStr = displayDate.toISOString().split("T")[0];
 
     // Add creation event
     events.push({
         type: "created",
-        post,
+        note,
         date: displayDate,
-        title: post.data.title,
+        title: note.data.title,
     });
 
     // Add update events for all other unique git dates
-    post.allGitDates.forEach((dateStr: string) => {
+    note.allGitDates.forEach((dateStr: string) => {
         // Only add as update if it's a different day than creation
         if (dateStr !== displayDateStr) {
             // We use 12:00 PM for these historical updates to ensure they sort reasonably
@@ -55,22 +55,22 @@ postsWithDates.forEach((post) => {
             const updateDate = new Date(dateStr + "T12:00:00");
             events.push({
                 type: "updated",
-                post,
+                note,
                 date: updateDate,
-                title: post.data.title,
+                title: note.data.title,
             });
         }
     });
 });
 
-// Aggregate events: group multiple updates to same post within short time
+// Aggregate events: group multiple updates to same note within short time
 const aggregatedEvents: any[] = [];
 const eventGroups = new Map();
 
 events.forEach((event) => {
-    // Group by slug, type, AND date (day) to ensure at most one event per post per day per type
+    // Group by slug, type, AND date (day) to ensure at most one event per note per day per type
     const dateStr = (event.date as Date).toISOString().split("T")[0];
-    const key = `${event.post.slug}-${event.type}-${dateStr}`;
+    const key = `${event.note.slug}-${event.type}-${dateStr}`;
     if (!eventGroups.has(key)) {
         eventGroups.set(key, []);
     }
@@ -97,7 +97,7 @@ const sortedEvents = aggregatedEvents.sort(
     (a, b) => b.date.valueOf() - a.date.valueOf(),
 );
 
-// Identify which events to collapse in the timeline (show only one update per post per month)
+// Identify which events to collapse in the timeline (show only one update per note per month)
 const creationsInMonth = new Set<string>();
 sortedEvents.forEach((e) => {
     if (e.type === "created") {
@@ -105,7 +105,7 @@ sortedEvents.forEach((e) => {
             year: "numeric",
             month: "long",
         });
-        creationsInMonth.add(`${e.post.slug}-${monthKey}`);
+        creationsInMonth.add(`${e.note.slug}-${monthKey}`);
     }
 });
 
@@ -115,17 +115,17 @@ sortedEvents.forEach((event) => {
         year: "numeric",
         month: "long",
     });
-    const postKey = `${event.post.slug}-${monthKey}`;
+    const noteKey = `${event.note.slug}-${monthKey}`;
 
     if (event.type === "created") {
         event.isCollapsed = false;
     } else {
         // It's an update - collapse if there's a creation or a later update in the same month
-        if (creationsInMonth.has(postKey) || seenUpdateInMonth.has(postKey)) {
+        if (creationsInMonth.has(noteKey) || seenUpdateInMonth.has(noteKey)) {
             event.isCollapsed = true;
         } else {
             event.isCollapsed = false;
-            seenUpdateInMonth.add(postKey);
+            seenUpdateInMonth.add(noteKey);
         }
     }
 });
@@ -188,11 +188,11 @@ sortedEvents.forEach((event) => {
     const month = event.date.getMonth();
 
     if (!yearsData.has(year)) {
-        yearsData.set(year, { count: 0, months: new Set(), uniquePosts: new Set() });
+        yearsData.set(year, { count: 0, months: new Set(), uniqueNotes: new Set() });
     }
     yearsData.get(year).count++; // Total activity for dots
     yearsData.get(year).months.add(month);
-    yearsData.get(year).uniquePosts.add(event.post.id); // Unique posts for the count label
+    yearsData.get(year).uniqueNotes.add(event.note.id); // Unique notes for the count label
 });
 
 // Convert to array and sort by year descending
@@ -200,17 +200,17 @@ const yearsArray = Array.from(yearsData.entries());
 yearsArray.sort((a, b) => b[0] - a[0]);
 const sortedYears = yearsArray.map(([year, data]) => ({
     year: year as number,
-    count: data.uniquePosts.size, // Number of unique posts touched
+    count: data.uniqueNotes.size, // Number of unique notes touched
     activityCount: data.count as number, // Total activity volume
     months: (Array.from(data.months) as number[]).sort((a, b) => b - a), // months descending within year
 }));
 
-// Identify pinned posts
-const pinnedPosts = allPosts.filter((post) => (post.data as any).pinned === true);
+// Identify pinned notes
+const pinnedNotes = allNotes.filter((note) => (note.data as any).pinned === true);
 
-// Get latest 3 created posts (that aren't pinned)
-const latestCreations = postsWithDates
-    .filter(p => !pinnedPosts.some(pinned => pinned.id === p.id))
+// Get latest 3 created notes (that aren't pinned)
+const latestCreations = notesWithDates
+    .filter(p => !pinnedNotes.some(pinned => pinned.id === p.id))
     .sort((a, b) => (b.displayDate as Date).valueOf() - (a.displayDate as Date).valueOf())
     .slice(0, 3);
 
@@ -273,7 +273,7 @@ const currentYearValue = new Date().getFullYear();
         <ProfileHeader />
 
         {
-            pinnedPosts.length > 0 && (
+            pinnedNotes.length > 0 && (
                 <div class="mb-12">
                     <div class="flex items-center gap-2 mb-4">
                         <svg
@@ -289,31 +289,31 @@ const currentYearValue = new Date().getFullYear();
                             />
                         </svg>
                         <h2 class="text-sm font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                            Pinned Posts
+                            Pinned Notes
                         </h2>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {pinnedPosts.map((post) => (
+                        {pinnedNotes.map((note) => (
                             <a
-                                href={`/posts/${post.slug}`}
+                                href={`/notes/${note.id}`}
                                 class="group block p-5 bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs hover:border-emerald-500/50 hover:shadow-md transition-all relative overflow-hidden"
                             >
                                 <div class="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
                                     <span class="text-xs">📌</span>
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                    {post.data.title}
+                                    {note.data.title}
                                 </h3>
-                                {post.data.summary && (
+                                {note.data.summary && (
                                     <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-                                        {post.data.summary}
+                                        {note.data.summary}
                                     </p>
                                 )}
                                 <div class="mt-4 flex items-center gap-3">
-                                    <span class={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${statusColors[post.data.status as keyof typeof statusColors]}`}>
-                                        {post.data.status === "seed" ? "🌱" : post.data.status === "sprout" ? "🌿" : "🌲"} {post.data.status}
+                                    <span class={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${stageColors[note.data.stage as keyof typeof stageColors]}`}>
+                                        {note.data.stage === "seed" ? "🌱" : note.data.stage === "sprout" ? "🌿" : "🌲"} {note.data.stage}
                                     </span>
-                                    {post.data.tags.slice(0, 2).map((tag) => (
+                                    {note.data.tags.slice(0, 2).map((tag: string) => (
                                         <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
                                             #{tag}
                                         </span>
@@ -343,25 +343,25 @@ const currentYearValue = new Date().getFullYear();
                         </h2>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {latestCreations.map((post) => (
+                        {latestCreations.map((note) => (
                             <a
-                                href={`/posts/${post.slug}`}
+                                href={`/notes/${note.id}`}
                                 class="group block p-4 bg-white dark:bg-[#121812] border border-slate-200 dark:border-slate-800 rounded-xl hover:border-emerald-500/30 transition-all"
                             >
                                 <div class="flex items-center justify-between mb-2">
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                                        {post.displayDate?.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
+                                        {note.displayDate?.toLocaleDateString("en-US", { month: 'short', day: 'numeric' })}
                                     </span>
-                                    <span class={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${statusColors[post.data.status as keyof typeof statusColors]}`}>
-                                        {post.data.status === "seed" ? "🌱" : post.data.status === "sprout" ? "🌿" : "🌲"} {post.data.status}
+                                    <span class={`text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${stageColors[note.data.stage as keyof typeof stageColors]}`}>
+                                        {note.data.stage === "seed" ? "🌱" : note.data.stage === "sprout" ? "🌿" : "🌲"} {note.data.stage}
                                     </span>
                                 </div>
                                 <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
-                                    {post.data.title}
+                                    {note.data.title}
                                 </h3>
-                                {post.data.summary && (
+                                {note.data.summary && (
                                     <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                                        {post.data.summary}
+                                        {note.data.summary}
                                     </p>
                                 )}
                             </a>
@@ -410,7 +410,7 @@ const currentYearValue = new Date().getFullYear();
                     year={currentYearValue}
                     events={sortedEvents as any}
                 />
-                <PostTimeline
+                <NoteTimeline
                     sortedEvents={sortedEvents}
                     allMonths={allMonths}
                     eventsByMonthKey={eventsByMonthKey}
@@ -456,7 +456,7 @@ const currentYearValue = new Date().getFullYear();
         }
     }
 
-    const buttons = document.querySelectorAll("[data-status]");
+    const buttons = document.querySelectorAll("[data-stage]");
     const topicButtons = document.querySelectorAll("[data-topic]");
     const eventTypeButtons = document.querySelectorAll("[data-event-type]");
     const timelineEvents = document.querySelectorAll(".timeline-event");
@@ -486,12 +486,12 @@ const currentYearValue = new Date().getFullYear();
 
         allTimelineEvents.forEach((event) => {
             const htmlEvent = event as HTMLElement;
-            const status = htmlEvent.dataset.status;
+            const stage = htmlEvent.dataset.stage; // This likely needs to be updated in NoteTimeline component which generates this HTML
             const eventYear = htmlEvent.dataset.eventYear || "";
             const eventType = htmlEvent.dataset.eventType;
 
             const matchesFilter =
-                currentFilter === "all" || status === currentFilter;
+                currentFilter === "all" || stage === currentFilter;
             const matchesTopic = currentTopic === "" || (htmlEvent.dataset.topics || "").includes(currentTopic);
             const matchesEventType =
                 currentEventType === "all" || eventType === currentEventType;
@@ -571,38 +571,6 @@ const currentYearValue = new Date().getFullYear();
             updateDisplay();
         });
     }
-
-    buttons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const status = (button as HTMLElement).dataset.status || "all";
-            itemsToShow = 10;
-            if (currentFilter === status) {
-                button.classList.remove("active");
-                currentFilter = "all";
-            } else {
-                buttons.forEach((btn) => btn.classList.remove("active"));
-                button.classList.add("active");
-                currentFilter = status;
-            }
-            updateDisplay();
-        });
-    });
-
-    topicButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const topic = (button as HTMLElement).dataset.topic || "";
-            itemsToShow = 10;
-            if (currentTopic === topic) {
-                button.classList.remove("active");
-                currentTopic = "";
-            } else {
-                topicButtons.forEach((btn) => btn.classList.remove("active"));
-                button.classList.add("active");
-                currentTopic = topic;
-            }
-            updateDisplay();
-        });
-    });
 
     eventTypeButtons.forEach((button) => {
         button.addEventListener("click", () => {
@@ -691,6 +659,19 @@ const currentYearValue = new Date().getFullYear();
             }
 
             updateDisplay();
+
+            // Scroll to the selected month section
+            setTimeout(() => {
+                const monthSection = document.querySelector(
+                    `.month-section[data-month="${monthKey}"]`,
+                );
+                if (monthSection) {
+                    monthSection.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                    });
+                }
+            }, 10);
         });
     });
 

@@ -1,13 +1,12 @@
 ---
 import Layout from "./Layout.astro";
-import PostHistory from "../components/History/PostHistory.astro";
+import NoteHistory from "../components/History/NoteHistory.astro";
 import ProfileHeader from "../components/Profile/ProfileHeader.astro";
 import TableOfContents from "../components/Navigation/TableOfContents.astro";
 import Backlinks from "../components/Backlinks.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import ImageLightbox from "../components/ImageLightbox.astro";
-import { getCollection } from "astro:content";
-import { getStatusColors } from "../lib/theme";
+import { getStageColors } from "../lib/theme";
 import { getReadingTime } from "../lib/reading-time";
 import BackToGarden from "../components/Navigation/BackToGarden.astro";
 import { Image } from "astro:assets";
@@ -16,7 +15,7 @@ interface Props {
     frontmatter: {
         title: string;
         publishedDate?: Date;
-        status: "seed" | "sprout" | "evergreen";
+        stage: "seed" | "sprout" | "evergreen";
         summary?: string;
         tags: string[];
         draft?: boolean;
@@ -28,26 +27,23 @@ interface Props {
     filePath: string;
     gitCreated?: Date | null;
     gitUpdated?: Date | null;
-    backlinkedPostSlugs: string[];
+    backlinkedNotes: any[];
+    noteBody?: string;
 }
 
-const { frontmatter, filePath, gitCreated, gitUpdated, backlinkedPostSlugs } =
+const { frontmatter, filePath, gitCreated, gitUpdated, backlinkedNotes, noteBody } =
     Astro.props;
 
-// Get current post content for TOC and reading time
-const allPosts = await getCollection("posts");
-const currentSlug = filePath.split("/").pop()?.replace(".md", "") || "";
-const currentPost = allPosts.find((post) => post.slug === currentSlug);
-
-const readingTime = currentPost ? getReadingTime(currentPost.body) : "";
+// Use passed body or fallback (fallback shouldn't be needed if updated correctly)
+const readingTime = noteBody ? getReadingTime(noteBody) : "";
 
 const createdDate = frontmatter.publishedDate || gitCreated || new Date();
 const hasBeenUpdated =
     gitUpdated && gitUpdated.getTime() > createdDate.getTime() + 1000 * 60 * 60; // More than 1 hour difference
 
-const statusColors = getStatusColors();
+const stageColors = getStageColors();
 
-const isPostDraft = frontmatter.draft === true;
+const isNoteDraft = frontmatter.draft === true;
 
 const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -71,7 +67,7 @@ const formatDate = (date: Date) => {
         <ProfileHeader />
         <div class="flex flex-col lg:flex-row gap-8">
              <article
-                 class={`flex-1 max-w-4xl ${isPostDraft ? "post-is-draft post-draft-indicator relative" : ""}`}
+                 class={`flex-1 max-w-4xl ${isNoteDraft ? "note-is-draft note-draft-indicator relative" : ""}`}
                  data-pagefind-body
              >
                  <div
@@ -82,26 +78,26 @@ const formatDate = (date: Date) => {
                     >
                         <div class="flex flex-wrap items-center gap-4 mb-6">
                             <span
-                                class={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${statusColors[frontmatter.status]}`}
+                                class={`px-2 py-0.5 rounded-full text-xs font-medium border flex items-center gap-1 ${stageColors[frontmatter.stage]}`}
                             >
                                 {
-                                    frontmatter.status === "seed" && (
+                                    frontmatter.stage === "seed" && (
                                         <span>🌱</span>
                                     )
                                 }
                                 {
-                                    frontmatter.status === "sprout" && (
+                                    frontmatter.stage === "sprout" && (
                                         <span>🌿</span>
                                     )
                                 }
                                 {
-                                    frontmatter.status === "evergreen" && (
+                                    frontmatter.stage === "evergreen" && (
                                         <span>🌲</span>
                                     )
                                 }
                                 {
-                                    frontmatter.status.charAt(0).toUpperCase() +
-                                        frontmatter.status.slice(1)
+                                    frontmatter.stage.charAt(0).toUpperCase() +
+                                        frontmatter.stage.slice(1)
                                 }
                             </span>
 
@@ -191,15 +187,15 @@ const formatDate = (date: Date) => {
                           </div>
                       </header>
                     {
-                        isPostDraft && (
-                            <div class="post-draft-banner">
+                        isNoteDraft && (
+                            <div class="note-draft-banner">
                                 <span class="text-xl">🏗️</span>
                                 <div>
                                     <p class="font-bold uppercase tracking-wider text-[10px]">
                                         Draft Content
                                     </p>
                                     <p>
-                                        This entire post is currently a work in
+                                        This entire note is currently a work in
                                         progress and may contain incomplete
                                         thoughts.
                                     </p>
@@ -213,19 +209,19 @@ const formatDate = (date: Date) => {
                         <slot />
                     </div>
 
-                    <Backlinks backlinkedPostSlugs={backlinkedPostSlugs} />
+                    <Backlinks backlinkedNotes={backlinkedNotes} />
 
                     <footer
                         class="mt-12 border-t border-slate-200 dark:border-slate-600"
                     >
-                        <PostHistory filePath={filePath} />
+                        <NoteHistory filePath={filePath} />
                     </footer>
                 </div>
                 <!-- Back to Home Link -->
                 <BackToGarden class="mt-8" />
             </article>
             <TableOfContents
-                content={currentPost?.body || ""}
+                content={noteBody || ""}
                 title={frontmatter.title}
             />
         </div>
@@ -381,6 +377,16 @@ const formatDate = (date: Date) => {
           @apply gap-4;
           grid-template-columns: 1fr;
         }
+      }
+
+      /* Note Styles */
+      .note-is-draft::after {
+        content: "DRAFT";
+        @apply absolute top-4 right-4 bg-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-sm z-50;
+      }
+
+      .note-draft-banner {
+        @apply flex items-center gap-4 p-4 mb-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl text-amber-800 dark:text-amber-200 text-xs;
       }
     </style>
 

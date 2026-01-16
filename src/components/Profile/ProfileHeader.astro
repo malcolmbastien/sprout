@@ -3,23 +3,22 @@ import { getCollection, type CollectionEntry } from "astro:content";
 import { theme } from "../../lib/theme";
 import { Picture } from "astro:assets";
 
-const posts = await getCollection("posts");
-const publishedPosts = posts.filter((post) => post.data);
+const notes = await getCollection("notes");
+const publishedNotes = notes.filter((note) => note.data);
 const counts = {
-    all: publishedPosts.length,
-    seed: publishedPosts.filter(
-        (p: CollectionEntry<"posts">) => p.data.status === "seed",
+    all: publishedNotes.length,
+    seed: publishedNotes.filter(
+        (n: CollectionEntry<"notes">) => n.data.stage === "seed",
     ).length,
-    sprout: publishedPosts.filter(
-        (p: CollectionEntry<"posts">) => p.data.status === "sprout",
+    sprout: publishedNotes.filter(
+        (n: CollectionEntry<"notes">) => n.data.stage === "sprout",
     ).length,
-    evergreen: publishedPosts.filter(
-        (p: CollectionEntry<"posts">) => p.data.status === "evergreen",
+    evergreen: publishedNotes.filter(
+        (n: CollectionEntry<"notes">) => n.data.stage === "evergreen",
     ).length,
 };
 
-const gravatarUrl =
-    "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=128";
+const gravatarUrl = "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 
 const isHome = Astro.url.pathname === "/" || Astro.url.pathname === "/index.html";
 const TitleTag = isHome ? "h1" : "div";
@@ -42,7 +41,7 @@ const TitleTag = isHome ? "h1" : "div";
                 <a
                     href="/"
                     class="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                    >My Digital Garden</a
+                    >Your Name's Thoughts</a
                 >
             </TitleTag>
         </div>

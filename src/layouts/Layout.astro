@@ -23,7 +23,7 @@ const {
     publishedTime,
     modifiedTime,
     tags = [],
-    author = "Malcolm Bastien",
+    author = "Your Name",
 } = Astro.props;
 
 // Generate canonical URL
@@ -39,7 +39,7 @@ const ogImage = image.startsWith("http") ? image : url + image;
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
-        <meta name="fediverse:creator" content="@malcolm@mastodon.social" />
+        <meta name="fediverse:creator" content="@yourname@instance.social" />
 
         <!-- Inter Font for better readability -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />

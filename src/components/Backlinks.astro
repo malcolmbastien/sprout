@@ -1,24 +1,21 @@
 ---
-import { getCollection } from "astro:content";
-import { getStatusColors } from "../lib/theme";
+import { getStageColors } from "../lib/theme";
 
 interface Props {
-    backlinkedPostSlugs: string[];
+    backlinkedNotes: any[];
 }
 
-const { backlinkedPostSlugs } = Astro.props;
+const { backlinkedNotes: rawBacklinkedNotes } = Astro.props;
 
-// Get all posts to find the ones that link to this post
-const allPosts = await getCollection("posts");
-const backlinkedPosts = allPosts
-    .filter((post) => backlinkedPostSlugs.includes(post.slug))
-    .map((post) => {
-        const displayDate = post.data.publishedDate || new Date();
-        return { ...post, displayDate };
+// Process notes for display (add displayDate, sort)
+const backlinkedNotes = rawBacklinkedNotes
+    .map((note) => {
+        const displayDate = note.data.publishedDate || new Date();
+        return { ...note, displayDate };
     })
     .sort((a, b) => b.displayDate.getTime() - a.displayDate.getTime()); // Most recent first
 
-const statusColors = getStatusColors();
+const stageColors = getStageColors();
 
 const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -30,36 +27,36 @@ const formatDate = (date: Date) => {
 ---
 
 {
-    backlinkedPosts.length > 0 && (
+    backlinkedNotes.length > 0 && (
         <section class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-600">
             <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
-                Links to this post
+                Links to this note
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {backlinkedPosts.map((post) => (
+                {backlinkedNotes.map((note) => (
                     <a
-                        href={`/posts/${post.slug}`}
+                        href={`/notes/${note.id}`}
                         class="group block p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                         <div class="flex items-center gap-2 mb-2">
                             <span
-                                class={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${statusColors[post.data.status as keyof typeof statusColors]}`}
+                                class={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${stageColors[note.data.stage as keyof typeof stageColors]}`}
                             >
-                                {post.data.status === "seed" && "🌱"}
-                                {post.data.status === "sprout" && "🌿"}
-                                {post.data.status === "evergreen" && "🌲"}
-                                {" "}{post.data.status}
+                                {note.data.stage === "seed" && "🌱"}
+                                {note.data.stage === "sprout" && "🌿"}
+                                {note.data.stage === "evergreen" && "🌲"}
+                                {" "}{note.data.stage}
                             </span>
                         </div>
                         <h4 class="text-sm font-medium text-slate-900 dark:text-slate-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors mb-2 line-clamp-2">
-                            {post.data.title}
+                            {note.data.title}
                         </h4>
                         <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">
-                            {post.data.summary}
+                            {note.data.summary}
                         </p>
                         <div class="flex items-center justify-between text-[10px] text-slate-400">
-                            <time datetime={post.displayDate.toISOString()}>
-                                {post.displayDate.toLocaleDateString("en-US", {
+                            <time datetime={note.displayDate.toISOString()}>
+                                {note.displayDate.toLocaleDateString("en-US", {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",

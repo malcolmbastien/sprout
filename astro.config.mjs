@@ -13,7 +13,7 @@ import { remarkGallery } from './src/lib/remark-gallery.mjs';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://malcolmbastien.github.io',
+	site: 'https://yourname.github.io',
 	base: '/',
 	integrations: [sitemap()],
 	prefetch: {

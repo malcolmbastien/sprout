@@ -6,35 +6,39 @@ import SocialLinks from "../components/Profile/SocialLinks.astro";
 import {
     getProgressColors,
 } from "../lib/theme";
-import { getFileDates } from "../lib/git-history";
+import { getBatchFileDates, type FileDates } from "../lib/git-history";
 
-const allPosts = await getCollection("posts");
+const allNotes = await getCollection("notes");
+const batchDates = (await getBatchFileDates()) as Map<string, FileDates>;
 
-const postsWithDates = await Promise.all(
-    allPosts.map(async (post) => {
-        const filePath = `src/content/posts/${post.id}`;
-        const { created, updated } = await getFileDates(filePath);
-        return {
-            ...post,
-            displayDate: post.data.publishedDate || created || new Date(),
-            updatedDate: updated || created || new Date(),
-        };
-    }),
-);
+const notesWithDates = allNotes.map((note) => {
+    const dates = batchDates.get(`src/content/notes/${note.id}`) ||
+                  batchDates.get(`src/content/notes/${note.id}.md`) ||
+                  batchDates.get(`src/content/notes/${note.id}.mdx`);
+    
+    const created = dates?.created;
+    const updated = dates?.updated;
 
-// Sort posts for stats
-const sortedPosts = postsWithDates.sort(
+    return {
+        ...note,
+        displayDate: note.data.publishedDate || created || new Date(),
+        updatedDate: updated || created || new Date(),
+    };
+});
+
+// Sort notes for stats
+const sortedNotes = notesWithDates.sort(
     (a, b) => b.displayDate.valueOf() - a.displayDate.valueOf(),
 );
 
-// Compute post counts by status (excluding drafts for stats)
-const publishedPosts = allPosts.filter((post) => post.data);
+// Compute note counts by stage (excluding drafts for stats)
+const publishedNotes = allNotes.filter((note) => note.data);
 const counts = {
-    all: publishedPosts.length,
-    seed: publishedPosts.filter((p: any) => p.data.status === "seed").length,
-    sprout: publishedPosts.filter((p: any) => p.data.status === "sprout")
+    all: publishedNotes.length,
+    seed: publishedNotes.filter((n: any) => n.data.stage === "seed").length,
+    sprout: publishedNotes.filter((n: any) => n.data.stage === "sprout")
         .length,
-    evergreen: publishedPosts.filter((p: any) => p.data.status === "evergreen").length,
+    evergreen: publishedNotes.filter((n: any) => n.data.stage === "evergreen").length,
 };
 
 const progressColors = getProgressColors();
@@ -47,8 +51,8 @@ const progressColors = getProgressColors();
             <TopicFocus />
             <GardenStats
                 counts={counts}
-                sortedPosts={sortedPosts}
-                allPosts={allPosts}
+                sortedNotes={sortedNotes}
+                allNotes={allNotes}
                 progressColors={progressColors}
             />
         </div>

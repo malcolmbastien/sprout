@@ -5,11 +5,11 @@ import ProfileHeader from "../../components/Profile/ProfileHeader.astro";
 import BackToGarden from "../../components/Navigation/BackToGarden.astro";
 import SiteFooter from "../../components/SiteFooter.astro";
 
-const allPosts = await getCollection("posts");
+const allNotes = await getCollection("notes");
 
 const topicCounts: Record<string, number> = {};
-allPosts.forEach((post) => {
-    post.data.tags.forEach((topic) => {
+allNotes.forEach((note) => {
+    note.data.tags.forEach((topic: string) => {
         topicCounts[topic] = (topicCounts[topic] || 0) + 1;
     });
 });

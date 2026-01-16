@@ -6,7 +6,7 @@ import SiteFooter from "../components/SiteFooter.astro";
 
 <Layout
     title="About - Your Name"
-    description="Learn about the author of this digital garden."
+    description="Learn about Your Name, a professional in Your Field."
     type="website"
 >
     <main class="max-w-7xl mx-auto p-4 md:p-8" data-pagefind-ignore>
@@ -21,28 +21,29 @@ import SiteFooter from "../components/SiteFooter.astro";
                         <div
                             class="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8"
                         >
+                            <!-- Placeholder for Portrait
                             <div class="shrink-0">
-                                <div class="w-48 h-64 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-400 border-2 border-slate-200 dark:border-slate-700 shadow-lg">
-                                    <span>Photo Placeholder</span>
+                                <div class="w-48 h-64 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center text-slate-400">
+                                    Your Photo
                                 </div>
                             </div>
+                            -->
                             <div class="flex-1">
                                 <h1
                                     class="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4"
                                 >
-                                    About Me
+                                    About
                                 </h1>
                                 <p
                                     class="text-xl text-slate-600 dark:text-slate-300 italic mb-4"
                                 >
-                                    I'm a writer, thinker, and digital gardener.
+                                    I'm a [Your Role] from [Your Location], passionate about [Your Interests].
                                 </p>
                                 <p
                                     class="text-slate-700 dark:text-slate-300 leading-relaxed"
                                 >
-                                    This is a space where I share my thoughts, learnings, and 
-                                    experiments. I'm passionate about exploring new ideas 
-                                     and documenting my journey as I grow my knowledge.
+                                    This is a space where I share my thoughts, learnings, and experiments.
+                                    Feel free to explore my digital garden!
                                 </p>
                             </div>
                         </div>
@@ -52,79 +53,75 @@ import SiteFooter from "../components/SiteFooter.astro";
                         class="prose prose-slate dark:prose-invert prose-lg max-w-none"
                     >
                         <h2
-                            id="my-journey"
+                            id="career-timeline"
                             class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-8 border-b border-slate-200 dark:border-slate-700 pb-2 mt-4!"
                         >
-                            My Journey
+                            Experience
                         </h2>
-                        <p>
-                            Share your background, career history, or personal journey here. 
-                            This digital garden is a reflection of your intellectual landscape.
-                            You can add more sections to this page to tell your story.
-                        </p>
+
+                        <div class="relative">
+                            <div class="space-y-6">
+                                <div class="relative flex items-start">
+                                    <div
+                                        class="shrink-0 w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-10"
+                                    >
+                                        <span class="text-white text-2xl">💼</span>
+                                    </div>
+                                    <div
+                                        class="ml-8 flex-1 bg-slate-50 dark:bg-slate-800 rounded-lg p-4 shadow-sm"
+                                    >
+                                        <div
+                                            class="flex flex-col md:flex-row md:items-center md:justify-between mb-2"
+                                        >
+                                            <h3
+                                                class="text-xl font-bold text-slate-900 dark:text-slate-100 mt-4!"
+                                            >
+                                                Your Current Role
+                                            </h3>
+                                            <span
+                                                class="text-emerald-600 dark:text-emerald-400 font-semibold text-lg"
+                                                >Year – Present</span
+                                            >
+                                        </div>
+                                        <h4
+                                            class="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-1 mt-4!"
+                                        >
+                                            Company Name
+                                        </h4>
+                                        <p
+                                            class="text-slate-600 dark:text-slate-400 mb-3 leading-relaxed"
+                                        >
+                                            Description of your role and achievements.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <h2
-                            id="interests"
-                            class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-8 border-b border-slate-200 dark:border-slate-700 pb-2"
+                            id="education"
+                            class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6 border-b border-slate-200 dark:border-slate-700 pb-2 mt-8"
                         >
-                            Areas of Interest
+                            Education
                         </h2>
-                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 list-none pl-0">
-                            <li class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <h3 class="font-bold text-slate-900 dark:text-white mb-1 mt-0!">Digital Gardening</h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-400 mb-0!">Exploring the philosophy of evolving thoughts.</p>
-                            </li>
-                            <li class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <h3 class="font-bold text-slate-900 dark:text-white mb-1 mt-0!">PKM</h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-400 mb-0!">Personal Knowledge Management systems.</p>
-                            </li>
-                            <li class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <h3 class="font-bold text-slate-900 dark:text-white mb-1 mt-0!">Web Dev</h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-400 mb-0!">Building modern experiences with Astro.</p>
-                            </li>
-                            <li class="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <h3 class="font-bold text-slate-900 dark:text-white mb-1 mt-0!">Writing</h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-400 mb-0!">Documenting the journey one word at a time.</p>
-                            </li>
-                        </ul>
+                        <div class="border-l-4 border-indigo-500 pl-6">
+                            <h3
+                                class="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-1 mt-4!"
+                            >
+                                University / School Name
+                            </h3>
+                            <p
+                                class="text-indigo-600 dark:text-indigo-400 font-medium mb-2"
+                            >
+                                Year – Year
+                            </p>
+                            <p class="text-slate-700 dark:text-slate-300">
+                                Degree / Certificate
+                            </p>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Back to Home Link -->
-                <BackToGarden class="mt-8" />
             </article>
-
-            <aside class="hidden lg:block w-72 shrink-0">
-                <div
-                    class="bg-white dark:bg-[#121812] p-6 rounded-lg shadow-sm sticky top-4"
-                >
-                    <h3
-                        class="text-lg font-semibold text-slate-900 dark:text-white mb-4"
-                    >
-                        Table of Contents
-                    </h3>
-                    <nav>
-                        <ul class="space-y-2">
-                            <li>
-                                <a
-                                    href="#my-journey"
-                                    class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-                                >
-                                    My Journey
-                                </a>
-                            </li>
-                            <li>
-                                <a
-                                    href="#interests"
-                                    class="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-                                >
-                                    Areas of Interest
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </aside>
         </div>
     </main>
     <SiteFooter />

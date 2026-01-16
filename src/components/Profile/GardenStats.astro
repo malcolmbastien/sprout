@@ -6,8 +6,8 @@ interface Props {
         sprout: number;
         evergreen: number;
     };
-    sortedPosts: any[];
-    allPosts: any[];
+    sortedNotes: any[];
+    allNotes: any[];
     progressColors: {
         seed: string;
         sprout: string;
@@ -15,7 +15,7 @@ interface Props {
     };
 }
 
-const { counts, sortedPosts, allPosts, progressColors } = Astro.props;
+const { counts, sortedNotes, allNotes, progressColors } = Astro.props;
 ---
 
 <div
@@ -40,17 +40,17 @@ const { counts, sortedPosts, allPosts, progressColors } = Astro.props;
         >
             <div
                 class={`h-full ${progressColors.seed}`}
-                style={`width: ${(sortedPosts.filter((p) => p.data.status === "seed").length / (allPosts.length || 1)) * 100}%`}
+                style={`width: ${(sortedNotes.filter((p) => p.data.stage === "seed").length / (allNotes.length || 1)) * 100}%`}
             >
             </div>
             <div
                 class={`h-full ${progressColors.sprout}`}
-                style={`width: ${(sortedPosts.filter((p) => p.data.status === "sprout").length / (allPosts.length || 1)) * 100}%`}
+                style={`width: ${(sortedNotes.filter((p) => p.data.stage === "sprout").length / (allNotes.length || 1)) * 100}%`}
             >
             </div>
             <div
                 class={`h-full ${progressColors.evergreen}`}
-                style={`width: ${(sortedPosts.filter((p) => p.data.status === "evergreen").length / (allPosts.length || 1)) * 100}%`}
+                style={`width: ${(sortedNotes.filter((p) => p.data.stage === "evergreen").length / (allNotes.length || 1)) * 100}%`}
             >
             </div>
         </div>

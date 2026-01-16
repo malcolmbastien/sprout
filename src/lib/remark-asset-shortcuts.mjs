@@ -62,7 +62,7 @@ export function remarkAssetShortcuts() {
       
       if (relativePath) {
         // Prepend the path to assets. 
-        // Blog posts are in src/content/posts/, so assets are at ../../assets/
+        // Notes are in src/content/notes/, so assets are at ../../assets/
         node.url = `../../assets/${relativePath}`;
       }
     });

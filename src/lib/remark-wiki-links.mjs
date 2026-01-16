@@ -2,39 +2,57 @@ import { visit } from 'unist-util-visit';
 import fs from 'fs';
 import path from 'path';
 
-export function remarkWikiLinks() {
-  const slugToStatus = new Map();
-  
-  // Find project root by looking for astro.config.mjs or package.json
-  let root = process.cwd();
-  while (root !== path.dirname(root)) {
-    if (fs.existsSync(path.join(root, 'astro.config.mjs')) || fs.existsSync(path.join(root, 'package.json'))) {
-      break;
-    }
-    root = path.dirname(root);
-  }
+// Cache for slug to stage mapping to avoid reading files on every render
+let slugToStageCache = null;
+let lastCacheTime = 0;
+const CACHE_TTL = 2000; // 2 seconds (good for dev server responsiveness)
 
-  const postsDir = path.join(root, 'src/content/posts');
+export function remarkWikiLinks() {
+  const now = Date.now();
   
-  if (fs.existsSync(postsDir)) {
-    const files = fs.readdirSync(postsDir);
-    for (const file of files) {
-      if (file.endsWith('.md') || file.endsWith('.mdx')) {
-        const filePath = path.join(postsDir, file);
-        try {
-          const content = fs.readFileSync(filePath, 'utf-8');
-          const slug = file.replace(/\.md(x)?$/, '');
-          
-          const statusMatch = content.match(/^status:\s*["']?([^"'\s#\r\n]+)/m);
-          if (statusMatch) {
-            slugToStatus.set(slug.toLowerCase(), statusMatch[1].trim());
+  // Rebuild cache if it doesn't exist or is too old
+  if (!slugToStageCache || (now - lastCacheTime > CACHE_TTL)) {
+    slugToStageCache = new Map();
+    lastCacheTime = now;
+    
+    // Find project root by looking for astro.config.mjs or package.json
+    let root = process.cwd();
+    while (root !== path.dirname(root)) {
+      if (fs.existsSync(path.join(root, 'astro.config.mjs')) || fs.existsSync(path.join(root, 'package.json'))) {
+        break;
+      }
+      root = path.dirname(root);
+    }
+
+    const notesDir = path.join(root, 'src/content/notes');
+    
+    if (fs.existsSync(notesDir)) {
+      try {
+        const files = fs.readdirSync(notesDir);
+        for (const file of files) {
+          if (file.endsWith('.md') || file.endsWith('.mdx')) {
+            const filePath = path.join(notesDir, file);
+            try {
+              // We only need the first few bytes to find the frontmatter, but reading whole file is safer for now
+              const content = fs.readFileSync(filePath, 'utf-8');
+              const slug = file.replace(/\.md(x)?$/, '');
+              
+              const stageMatch = content.match(/^stage:\s*["']?([^"'\s#\r\n]+)/m);
+              if (stageMatch) {
+                slugToStageCache.set(slug.toLowerCase(), stageMatch[1].trim());
+              }
+            } catch (e) {
+              // Ignore read errors
+            }
           }
-        } catch (e) {
-          // Ignore read errors
         }
+      } catch (e) {
+        // Ignore directory read errors
       }
     }
   }
+
+  const slugToStage = slugToStageCache;
 
   return (tree) => {
     visit(tree, 'text', (node, index, parent) => {
@@ -60,23 +78,24 @@ export function remarkWikiLinks() {
           });
         }
 
+        // Standardize slug generation
         const slug = linkTarget
           .trim()
           .toLowerCase()
           .replace(/\s+/g, '-')
           .replace(/[^\w-]/g, '');
 
-        const status = slugToStatus.get(slug);
+        const stage = slugToStage.get(slug);
         const label = (displayText || linkTarget).trim();
 
         const linkNode = {
           type: 'link',
-          url: `/posts/${slug}`,
+          url: `/notes/${slug}`,
           title: linkTarget.trim(),
           data: {
             hProperties: {
               className: ['internal-link'],
-              'data-status': status || ''
+              'data-stage': stage || ''
             }
           },
           children: [

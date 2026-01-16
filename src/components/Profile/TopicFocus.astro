@@ -1,12 +1,12 @@
 ---
 import { getCollection } from "astro:content";
 
-const allPosts = await getCollection("posts");
+const allNotes = await getCollection("notes");
 
 // Aggregate topic counts
 const topicCounts: Record<string, number> = {};
-allPosts.forEach((post) => {
-    post.data.tags.forEach((tag) => {
+allNotes.forEach((note) => {
+    note.data.tags.forEach((tag: string) => {
         topicCounts[tag] = (topicCounts[tag] || 0) + 1;
     });
 });
@@ -40,7 +40,7 @@ const topTopics = Object.entries(topicCounts)
     </div>
     <a
         href="/topics"
-        class="block text-center text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 mt-3 transition-colors"
+        class="block text-center text-xs font-medium text-slate-600 dark:text-slate-400 mt-3 transition-colors"
     >
         View all topics →
     </a>

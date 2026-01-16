@@ -383,15 +383,15 @@ html {
     text-decoration: none !important;
 }
 
-.prose a.internal-link[data-status="seed"]::after {
+.prose a.internal-link[data-stage="seed"]::after {
     content: "🌱";
 }
 
-.prose a.internal-link[data-status="sprout"]::after {
+.prose a.internal-link[data-stage="sprout"]::after {
     content: "🌿";
 }
 
-.prose a.internal-link[data-status="evergreen"]::after {
+.prose a.internal-link[data-stage="evergreen"]::after {
     content: "🌲";
 }
 

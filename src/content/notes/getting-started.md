@@ -1,6 +1,6 @@
 ---
 title: "Getting Started with Your Digital Garden"
-status: "tree"
+stage: "evergreen"
 tags: ["tutorial", "getting-started", "garden"]
 summary: "Learn the basics of maintaining a digital garden and how to use this template."
 publishedDate: 2024-01-08
@@ -67,5 +67,7 @@ function helloGarden() {
 2. Update the site configuration in `astro.config.mjs`
 3. Start writing your first real post
 4. Deploy to GitHub Pages or your preferred hosting
+5. Visit [[callouts-and-formatting]]
+
 
 Happy gardening! 🌿

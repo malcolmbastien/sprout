@@ -1,6 +1,6 @@
 ---
 title: "Draft Post Example"
-status: "seed"
+stage: "seed"
 tags: ["draft", "work-in-progress", "example"]
 summary: "This is an example of a draft post showing the draft banner functionality."
 publishedDate: 2024-01-08

@@ -1,0 +1,53 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import NoteLayout from '../../layouts/NoteLayout.astro';
+import { getFileDates } from '../../lib/git-history';
+
+export async function getStaticPaths() {
+	const notes = await getCollection('notes');
+	const backlinksMap = await import('../../lib/backlinks.ts').then(m => m.buildBacklinksMap());
+
+	const paths = [];
+	notes.forEach((entry: CollectionEntry<'notes'>) => {
+        const relatedSlugs = backlinksMap[entry.slug] || [];
+        const relatedNotes = notes.filter(n => relatedSlugs.includes(n.slug));
+        // Add path for clean slug
+        paths.push({
+            params: { slug: entry.slug },
+            props: {
+                entry,
+                backlinkedNotes: relatedNotes
+            },
+        });
+        // Add path for .md slug to handle legacy URLs
+        paths.push({
+            params: { slug: entry.slug + '.md' },
+            props: {
+                entry,
+                backlinkedNotes: relatedNotes
+            },
+        });
+    });
+	return paths;
+}
+
+// Handle URLs with .md extension by redirecting to clean slug
+if (Astro.params.slug.endsWith('.md')) {
+  const cleanSlug = Astro.params.slug.replace(/\.md$/, '');
+  return Astro.redirect(`/notes/${cleanSlug}`, 301);
+}
+
+interface Props {
+	entry: CollectionEntry<'notes'>;
+	backlinkedNotes: CollectionEntry<'notes'>[];
+}
+
+const { entry, backlinkedNotes } = Astro.props;
+const { Content } = await entry.render();
+const filePath = `src/content/notes/${entry.id}`;
+const { created, updated } = await getFileDates(filePath);
+---
+
+<NoteLayout frontmatter={entry.data} filePath={filePath} gitCreated={created} gitUpdated={updated} backlinkedNotes={backlinkedNotes} noteBody={entry.body}>
+	<Content />
+</NoteLayout>
