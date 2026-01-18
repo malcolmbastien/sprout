@@ -12,7 +12,7 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 ### Homepage (Dark Mode)
 ![Dark Mode](public/screenshots/dark-mode.png)
 
-### Post Page
+### Note Page
 ![Post Page](public/screenshots/post-page.png)
 
 ### About Page
@@ -31,15 +31,15 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 - **📌 Pinned Posts:** Highlight foundational thoughts at the top of your homepage for easy access.
 - **🌟 Featured Notes:** Make significant notes stand out in the timeline with larger cards and cover images.
 - **🏷️ Flexible Tagging:** Support for both frontmatter tags and inline `#hashtag` style tagging within your content.
-- **📖 Reading Time Estimates:** Automatic calculation of estimated reading time for each post.
+- **📖 Reading Time Estimates:** Automatic calculation of estimated reading time for each note.
 - **🔗 Backlinks:** Automatic tracking of connections between your thoughts, showing every other post that links to the current one.
 - **📋 Table of Contents:** Auto-generated navigation for notes with multiple headings (desktop only).
 - **🏗️ Drafting System:** Support for marking entire notes or specific blocks as in-progress with unique "under construction" styling.
 
 ### **🔍 Discovery & Navigation**
-- **🗺️ Content Map:** A unique visual header on every post page that visualizes the structure (headers, callouts, paragraphs) and provides a sense of length and landmarks.
+- **🗺️ Content Map:** A unique visual header on every note page that visualizes the structure (headers, callouts, paragraphs) and provides a sense of length and landmarks.
 - **☀️ Freshly Planted:** A dedicated homepage section to quickly surface your most recent updates and new seeds.
-- **🔍 Post Search:** Instant, full-text client-side search to help visitors find specific thoughts.
+- **🔍 Note Search:** Instant, full-text client-side search to help visitors find specific thoughts.
 - **📂 Topic Index:** A comprehensive page listing all garden topics with post counts for easy exploration.
 - **🔗 Smart Link Detection:** Visual distinction between internal wiki-links and external references, including "link distinction" styling.
 - **📅 Note Timeline:** A chronological overview of your garden's activity, showing when notes were created or updated.
@@ -55,7 +55,7 @@ a delightful reading and discovery experience with advanced filtering, SEO optim
 - **📱 Responsive Design:** Optimized layouts for all device sizes with mobile-first approach.
 
 ### **🔧 Technical Features**
-- **📜 Git Evolution Tracking:** Automatically extracts file history from Git to show a timeline of how each post has grown.
+- **📜 Git Evolution Tracking:** Automatically extracts file history from Git to show a timeline of how each note has grown.
 - **📊 Activity Heatmap:** A GitHub-style contributions grid showing when you've been tending to your garden.
 - **🔍 SEO Optimized:** Structured data (JSON-LD), meta tags, Open Graph, Twitter Cards, sitemap, and robots.txt.
 - **⚡ Performance:** Fast builds, optimized images, and efficient client-side filtering.
@@ -128,9 +128,9 @@ Adding *emphasis text* immediately after an image will automatically use it as a
 ## 🛠️ Project Structure
 
 - `src/content/`: Your notes and collection configuration.
-- `src/assets/` : Your images to serve in blog posts
+- `src/assets/` : Your images to serve in notes
 - `src/components/`: Reusable UI elements (Heatmap, Content Map, Table of Contents, Toggle, etc.).
-- `src/layouts/`: Page wrappers (Main Layout and Post Layout).
+- `src/layouts/`: Page wrappers (Main Layout and Note Layout).
 - `src/lib/`: Backend utilities (Git history extraction, theme configuration, and Remark plugins).
 - `src/styles/`: Global Tailwind CSS and custom theme configurations.
 - `public/`: Static assets including robots.txt and favicon.
@@ -142,13 +142,13 @@ All colors are centralized in `src/lib/theme.ts` for easy customization:
 
 ```typescript
 export const theme = {
-  status: {
+  stage: {
     seed: {
       badge: 'bg-emerald-100 dark:bg-emerald-800/40 text-slate-600 dark:text-slate-400 border-emerald-300 dark:border-emerald-900',
       glow: 'hover:shadow-emerald-200/50 dark:hover:shadow-emerald-900/50',
       progress: 'bg-emerald-300 dark:bg-emerald-800'
     },
-    // ... sprout and tree configurations
+    // ... sprout and evergreen configurations
   },
   // ... header and other theme settings
 };
@@ -167,7 +167,7 @@ publishedDate: 2026-01-08  # Optional, defaults to Git creation date
 draft: true              # Optional, adds WIP banner
 pinned: true            # Optional, adds to Pinned section on homepage
 featured: true            # Optional, creates larger entry in note timeline if cover image is set
-cover: "../../assets/cover-image.jpg"  # Optional, required to create featured post.
+cover: "../../assets/cover-image.jpg"  # Optional, required to create featured note.
 ---
 ```
 
